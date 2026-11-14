@@ -54,7 +54,8 @@ fun PreferencesScreen(
     onUpdateOneHandedMode: (String) -> Unit,
     onUpdateLongPressDelete: (Boolean) -> Unit = {},
     onUpdateSelectiveDeleteMode: (String) -> Unit = {},
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    extraContent: @Composable () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
 
@@ -212,18 +213,10 @@ fun PreferencesScreen(
 
         SettingsGroup(modifier = Modifier.padding(horizontal = 16.dp)) {
             SettingsToggleItem(
-                title = "Dedicated Number Row",
-                subtitle = "Display persistent 5th row of digits above letter keys",
-                checked = preferences.showNumberRow,
-                position = GroupPosition.TOP,
-                onCheckedChange = onUpdateShowNumberRow
-            )
-
-            SettingsToggleItem(
                 title = "Show Globe Key",
                 subtitle = "Show language switch key beside Space bar",
                 checked = preferences.showGlobeKey,
-                position = GroupPosition.MIDDLE,
+                position = GroupPosition.TOP,
                 onCheckedChange = onUpdateShowGlobeKey
             )
 
@@ -239,14 +232,6 @@ fun PreferencesScreen(
                     onCheckedChange = onUpdateShowEmojiKey
                 )
             }
-
-            SettingsToggleItem(
-                title = "Secondary Key Hints",
-                subtitle = "Show secondary symbol hints on the corner of keycaps",
-                checked = preferences.showSecondaryKeys,
-                position = GroupPosition.MIDDLE,
-                onCheckedChange = onUpdateShowSecondaryKeys
-            )
 
             SettingsToggleItem(
                 title = "Popup on Keypress",
@@ -275,5 +260,7 @@ fun PreferencesScreen(
                 onValueChange = { onUpdateLongPressDelay(it.toInt()) }
             )
         }
+
+        extraContent()
     }
 }

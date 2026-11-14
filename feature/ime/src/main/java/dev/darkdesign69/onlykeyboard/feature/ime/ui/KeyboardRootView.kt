@@ -237,6 +237,7 @@ fun KeyboardRootView(
     emojiOpenRequest: Int = 0,
     clipboardRecentEnabled: Boolean = true,
     onPasteClipImage: (String) -> Unit = {},
+    cutCopyPasteLongPress: Boolean = true,
     inputSessionId: Int = 0,
     actionKeyVisual: ActionKeyVisual = ActionKeyVisual.DefaultEnter,
     vibrationEnabled: Boolean = true,
@@ -2060,6 +2061,15 @@ fun KeyboardRootView(
                                 gestureTypingEnabled = isEffectiveGestureTypingEnabled,
                                 longPressDelayMs = longPressDelayMs,
                                 popupDismissDelayMs = keyPopupDismissDelayMs.toLong(),
+                                directClipboardActions = cutCopyPasteLongPress,
+                                onClipboardAction = { actionName ->
+                                    when (actionName) {
+                                        "ACTION_CUT" -> onTextAction(TextAction.CUT, false)
+                                        "ACTION_COPY" -> onTextAction(TextAction.COPY, false)
+                                        "ACTION_PASTE" -> onTextAction(TextAction.PASTE, false)
+                                        else -> false
+                                    }
+                                },
                                 spaceCursorLongPressDelayMs = spaceCursorLongPressDelayMs.toLong(),
                                 spaceCursorSpeed = spaceCursorSpeed,
                                 modifier = Modifier

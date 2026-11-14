@@ -58,7 +58,7 @@ fun CorrectionsSuggestionsScreen(
     onDeleteLearnedWords: () -> Unit = {},
     onUpdateGestureTyping: (Boolean) -> Unit,
     onUpdateShowGestureTrail: (Boolean) -> Unit,
-    onUpdateAutoCapitalization: (Boolean) -> Unit,
+    onUpdateAutoCapitalization: (Boolean) -> Unit = {},
     onUpdateDoubleSpacePeriod: (Boolean) -> Unit,
     onUpdateDoubleSpaceTab: (Boolean) -> Unit,
     onUpdateGlobeOpensOtherKeyboards: (Boolean) -> Unit,
@@ -69,7 +69,8 @@ fun CorrectionsSuggestionsScreen(
     onUpdateRemoveSpaceBeforePunctuation: (Boolean) -> Unit = {},
     onUpdateSuggestionBarMode: (String) -> Unit = {},
     onUpdateEmojiSuggestions: (Boolean) -> Unit = {},
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    extraContent: @Composable () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -298,47 +299,7 @@ fun CorrectionsSuggestionsScreen(
         SettingsCategoryHeader(title = "Text Corrections")
 
         SettingsGroup(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SettingsToggleItem(
-                title = "Auto-Capitalization",
-                subtitle = "Automatically capitalize the first letter of each sentence",
-                checked = preferences.autoCapitalization,
-                position = GroupPosition.TOP,
-                onCheckedChange = onUpdateAutoCapitalization
-            )
-
-            SettingsToggleItem(
-                title = "Double-Space Period",
-                subtitle = "Quickly double-tap the spacebar to insert a period followed by a space",
-                checked = preferences.doubleSpacePeriod,
-                position = GroupPosition.MIDDLE,
-                onCheckedChange = onUpdateDoubleSpacePeriod
-            )
-
-            SettingsToggleItem(
-                title = "Double-Space Tab",
-                subtitle = "Double-tap the spacebar to insert a Tab character",
-                checked = preferences.doubleSpaceTab,
-                position = GroupPosition.MIDDLE,
-                onCheckedChange = onUpdateDoubleSpaceTab
-            )
-
-            SettingsToggleItem(
-                title = "Globe key opens other keyboards",
-                subtitle = "Tapping the globe key switches to your next keyboard instead of the picker",
-                checked = preferences.globeOpensOtherKeyboards,
-                position = GroupPosition.MIDDLE,
-                onCheckedChange = onUpdateGlobeOpensOtherKeyboards
-            )
-
-            SettingsToggleItem(
-                title = "Smart volume cursor",
-                subtitle = "Volume keys move the cursor while typing, unless media is playing",
-                checked = preferences.smartVolumeCursor,
-                position = GroupPosition.MIDDLE,
-                onCheckedChange = onUpdateSmartVolumeCursor
-            )
-
-            val autoSpaceShape = remember { getGroupItemShape(GroupPosition.MIDDLE) }
+            val autoSpaceShape = remember { getGroupItemShape(GroupPosition.TOP) }
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -464,5 +425,7 @@ fun CorrectionsSuggestionsScreen(
                 onCheckedChange = onUpdateRemoveSpaceBeforePunctuation
             )
         }
+
+        extraContent()
     }
 }

@@ -219,7 +219,8 @@ fun SettingsMainScreen(
             )
 
             SettingsNavigationItem(
-                title = tr("Language Extensions"),
+                title = tr("More Languages"),
+                subtitle = tr("Install Arabic, Chakma, Syloti language"),
                 icon = Icons.Outlined.Language,
                 position = GroupPosition.MIDDLE,
                 onClick = { onNavigate(SettingsScreen.LanguageExtensions) }
@@ -228,8 +229,15 @@ fun SettingsMainScreen(
             SettingsNavigationItem(
                 title = tr("Preferences"),
                 icon = Icons.Outlined.Tune,
-                position = GroupPosition.BOTTOM,
+                position = GroupPosition.MIDDLE,
                 onClick = { onNavigate(SettingsScreen.Preferences) }
+            )
+
+            SettingsNavigationItem(
+                title = tr("Appearance & Layouts"),
+                icon = Icons.Outlined.Keyboard,
+                position = GroupPosition.BOTTOM,
+                onClick = { onNavigate(SettingsScreen.AppearanceLayouts) }
             )
         }
 
@@ -237,7 +245,7 @@ fun SettingsMainScreen(
 
         SettingsGroup {
             SettingsNavigationItem(
-                title = tr("Corrections & Suggestions"),
+                title = tr("Text correction"),
                 icon = Icons.Outlined.Spellcheck,
                 position = GroupPosition.TOP,
                 onClick = { onNavigate(SettingsScreen.CorrectionsSuggestions) }
@@ -253,8 +261,15 @@ fun SettingsMainScreen(
             SettingsNavigationItem(
                 title = tr("Voice Typing"),
                 icon = Icons.Outlined.Mic,
-                position = GroupPosition.BOTTOM,
+                position = GroupPosition.MIDDLE,
                 onClick = { onNavigate(SettingsScreen.VoiceTyping) }
+            )
+
+            SettingsNavigationItem(
+                title = tr("Advanced"),
+                icon = Icons.Outlined.Settings,
+                position = GroupPosition.BOTTOM,
+                onClick = { onNavigate(SettingsScreen.AdvancedSettings) }
             )
         }
 
@@ -278,58 +293,24 @@ fun SettingsMainScreen(
             SettingsNavigationItem(
                 title = tr("Backup & Restore"),
                 icon = Icons.Outlined.SettingsBackupRestore,
-                position = GroupPosition.BOTTOM,
+                position = GroupPosition.MIDDLE,
                 onClick = { onNavigate(SettingsScreen.BackupRestore) }
             )
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SettingsCategoryHeader(title = tr("Quick Settings"))
-        SettingsGroup {
-            SettingsNavigationItem(
-                title = tr("Preferences"),
-                icon = Icons.Outlined.Tune,
-                position = GroupPosition.TOP,
-                onClick = { onNavigate(SettingsScreen.TypingPreferences) }
-            )
-            SettingsNavigationItem(
-                title = tr("Appearance & Layouts"),
-                icon = Icons.Outlined.Keyboard,
-                position = GroupPosition.MIDDLE,
-                onClick = { onNavigate(SettingsScreen.AppearanceLayouts) }
-            )
-            SettingsNavigationItem(
-                title = tr("Text correction"),
-                icon = Icons.Outlined.Spellcheck,
-                position = GroupPosition.MIDDLE,
-                onClick = { onNavigate(SettingsScreen.TextCorrection) }
-            )
-            SettingsNavigationItem(
-                title = tr("More Languages"),
-                subtitle = tr("Install Arabic, Chakma, Syloti language"),
-                icon = Icons.Outlined.Language,
-                position = GroupPosition.MIDDLE,
-                onClick = { onNavigate(SettingsScreen.LanguageExtensions) }
-            )
-            SettingsNavigationItem(
-                title = tr("Advanced"),
-                icon = Icons.Outlined.Settings,
-                position = GroupPosition.MIDDLE,
-                onClick = { onNavigate(SettingsScreen.AdvancedSettings) }
-            )
             SettingsNavigationItem(
                 title = tr("Gif Quality"),
                 icon = Icons.Outlined.Image,
                 position = GroupPosition.MIDDLE,
                 onClick = { onNavigate(SettingsScreen.GifQuality) }
             )
+
             SettingsNavigationItem(
                 title = tr("Release notes"),
                 icon = Icons.Outlined.NewReleases,
                 position = GroupPosition.MIDDLE,
                 onClick = { onNavigate(SettingsScreen.ReleaseNotes) }
             )
+
             SettingsNavigationItem(
                 title = tr("App Language"),
                 subtitle = tr("Change between Bangla and English"),

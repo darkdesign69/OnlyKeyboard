@@ -101,6 +101,7 @@ class KiebordPreferencesRepository private constructor(private val context: Cont
 
 
         val LARGE_NUMBER_ROW = booleanPreferencesKey("pref_large_number_row")
+        val CUT_COPY_PASTE_LONG_PRESS = booleanPreferencesKey("pref_cut_copy_paste_long_press")
         val KEYBOARD_RESIZING_ENABLED = booleanPreferencesKey("pref_keyboard_resizing_enabled")
         val ONE_HANDED_WIDTH_PORTRAIT = intPreferencesKey("pref_one_handed_width_portrait")
         val ONE_HANDED_WIDTH_LANDSCAPE = intPreferencesKey("pref_one_handed_width_landscape")
@@ -262,6 +263,7 @@ class KiebordPreferencesRepository private constructor(private val context: Cont
                     overrides
                 },
                 largeNumberRow = prefs[PreferencesKeys.LARGE_NUMBER_ROW] ?: false,
+                cutCopyPasteLongPress = prefs[PreferencesKeys.CUT_COPY_PASTE_LONG_PRESS] ?: true,
                 keyboardResizingEnabled = prefs[PreferencesKeys.KEYBOARD_RESIZING_ENABLED] ?: true,
                 oneHandedWidthPortraitPercent = prefs[PreferencesKeys.ONE_HANDED_WIDTH_PORTRAIT] ?: 80,
                 oneHandedWidthLandscapePercent = prefs[PreferencesKeys.ONE_HANDED_WIDTH_LANDSCAPE] ?: 40,
@@ -657,6 +659,10 @@ class KiebordPreferencesRepository private constructor(private val context: Cont
     // Extra keyboard option mutators
     suspend fun updateLargeNumberRow(enabled: Boolean) {
         context.kiebordDataStore.edit { it[PreferencesKeys.LARGE_NUMBER_ROW] = enabled }
+    }
+
+    suspend fun updateCutCopyPasteLongPress(enabled: Boolean) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.CUT_COPY_PASTE_LONG_PRESS] = enabled }
     }
 
     suspend fun updateKeyboardResizingEnabled(enabled: Boolean) {

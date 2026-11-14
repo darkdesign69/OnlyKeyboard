@@ -388,6 +388,7 @@ class KiebordService : InputMethodService() {
                 (transliterationManager as? GenericTransliterationManager)?.isAutoCorrectEnabled = prefs.phoneticAutoCorrect
                 val isDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
                 colorScheme = dev.darkdesign69.onlykeyboard.theme.ThemeRepository.getInstance(this@KiebordService).getColorScheme(prefs.theme, this@KiebordService, isDark = isDark)
+                applyNavigationBarColor()
                 val availableMeta = layoutRepo.getAvailableLayouts().map { it.id }.toSet()
                 val enabledIds = prefs.enabledLayoutIds.toList().filter { id ->
                     id in availableMeta || id == KiebordPreferences.LAYOUT_AR_ARABIC
@@ -612,6 +613,7 @@ class KiebordService : InputMethodService() {
                     emojiOpenRequest = emojiOpenRequestState,
                     clipboardRecentEnabled = preferencesState.clipboardRecentItems,
                     onPasteClipImage = { imagePath -> pasteClipboardImage(imagePath) },
+                    cutCopyPasteLongPress = preferencesState.cutCopyPasteLongPress,
                     heightScalePortrait = preferencesState.keyboardHeightScale,
                     heightScaleLandscape = preferencesState.keyboardHeightScaleLandscape,
                     chinPaddingPortraitDp = preferencesState.chinPaddingPortraitDp,
@@ -772,6 +774,7 @@ class KiebordService : InputMethodService() {
             val isDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
             colorScheme = dev.darkdesign69.onlykeyboard.theme.ThemeRepository.getInstance(this).getColorScheme(preferencesState.theme, this, isDark = isDark)
         }
+        applyNavigationBarColor()
         currentEditorInfoState = info
         val isPass = InputModeResolver.isPasswordField(info)
         if (!isPass) {
@@ -3261,6 +3264,24 @@ class KiebordService : InputMethodService() {
                 SuggestionCandidate(text = word, isPrimary = idx == 0)
             })
         }
+    }
+
+    /** Colours the system navigation bar strip under the keyboard with the keyboard background. */
+    private fun applyNavigationBarColor() {
+        try {
+            val w = window?.window ?: return
+            val c = colorScheme.containerBackground
+            w.navigationBarColor = android.graphics.Color.rgb(
+                (c.red * 255f).toInt().coerceIn(0, 255),
+                (c.green * 255f).toInt().coerceIn(0, 255),
+                (c.blue * 255f).toInt().coerceIn(0, 255)
+            )
+            if (Build.VERSION.SDK_INT >= 29) {
+                w.isNavigationBarContrastEnforced = false
+            }
+            val light = (0.299f * c.red + 0.587f * c.green + 0.114f * c.blue) > 0.5f
+            androidx.core.view.WindowCompat.getInsetsController(w, w.decorView).isAppearanceLightNavigationBars = light
+        } catch (_: Exception) {}
     }
 
     /** Pastes a copied image into the focused field using rich content (images / GIF / screenshots). */

@@ -95,6 +95,7 @@ data class KiebordPreferences(
 
     // Extra keyboard options
     val largeNumberRow: Boolean = false,
+    val cutCopyPasteLongPress: Boolean = true,
     val keyboardResizingEnabled: Boolean = true,
     val oneHandedWidthPortraitPercent: Int = 80,
     val oneHandedWidthLandscapePercent: Int = 40,

@@ -60,8 +60,8 @@ import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.AppearanceLayoutsScreen
 import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.GifQualityScreen
 import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.LocalAppLanguage
 import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.ReleaseNotesScreen
-import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.TextCorrectionScreen
-import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.TypingPreferencesScreen
+import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.CorrectionExtras
+import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.PreferencesExtras
 import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.AppearanceThemesScreen
 import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.BackupRestoreScreen
 import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.ClipboardSettingsScreen
@@ -611,7 +611,13 @@ fun KiebordSettingsApp(
                             onUpdateSelectiveDeleteMode = { mode ->
                                 scope.launch { preferencesRepo.updateSelectiveDeleteMode(mode) }
                             },
-                            onBack = navigateBack
+                            onBack = navigateBack,
+                            extraContent = {
+                                PreferencesExtras(
+                                    preferences = preferences,
+                                    update = { block -> scope.launch { preferencesRepo.block() } }
+                                )
+                            }
                         )
                     }
 
@@ -710,7 +716,13 @@ fun KiebordSettingsApp(
                             onUpdateEmojiSuggestions = { enabled ->
                                 scope.launch { preferencesRepo.updateEmojiSuggestions(enabled) }
                             },
-                            onBack = navigateBack
+                            onBack = navigateBack,
+                            extraContent = {
+                                CorrectionExtras(
+                                    preferences = preferences,
+                                    update = { block -> scope.launch { preferencesRepo.block() } }
+                                )
+                            }
                         )
                     }
 
@@ -776,22 +788,8 @@ fun KiebordSettingsApp(
                         )
                     }
 
-                    is SettingsScreen.TypingPreferences -> {
-                        TypingPreferencesScreen(
-                            preferences = preferences,
-                            update = { block -> scope.launch { preferencesRepo.block() } }
-                        )
-                    }
-
                     is SettingsScreen.AppearanceLayouts -> {
                         AppearanceLayoutsScreen(
-                            preferences = preferences,
-                            update = { block -> scope.launch { preferencesRepo.block() } }
-                        )
-                    }
-
-                    is SettingsScreen.TextCorrection -> {
-                        TextCorrectionScreen(
                             preferences = preferences,
                             update = { block -> scope.launch { preferencesRepo.block() } }
                         )
@@ -800,8 +798,7 @@ fun KiebordSettingsApp(
                     is SettingsScreen.AdvancedSettings -> {
                         AdvancedSettingsScreen(
                             preferences = preferences,
-                            update = { block -> scope.launch { preferencesRepo.block() } },
-                            onOpenVoiceEngine = { navigateTo(SettingsScreen.VoiceTyping) }
+                            update = { block -> scope.launch { preferencesRepo.block() } }
                         )
                     }
 

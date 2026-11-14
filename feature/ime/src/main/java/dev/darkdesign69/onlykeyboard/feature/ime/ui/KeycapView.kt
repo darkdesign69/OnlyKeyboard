@@ -135,6 +135,8 @@ fun KeycapView(
     gestureTypingEnabled: Boolean = true,
     longPressDelayMs: Long = 300L,
     popupDismissDelayMs: Long = 0L,
+    directClipboardActions: Boolean = false,
+    onClipboardAction: (String) -> Unit = {},
     spaceCursorLongPressDelayMs: Long = 400L,
     spaceCursorSpeed: Int = 100
 ) {
@@ -198,6 +200,8 @@ fun KeycapView(
     val currentOnKeyPress = rememberUpdatedState(onKeyPress)
     val currentOnTap = rememberUpdatedState(onKeyTap)
     val currentOnLongPress = rememberUpdatedState(onKeyLongPress)
+    val currentOnClipboardAction = rememberUpdatedState(onClipboardAction)
+    val currentDirectClipboard = rememberUpdatedState(directClipboardActions)
     val currentOnDeleteSwipeMove = rememberUpdatedState(onDeleteSwipeMove)
     val currentOnDeleteSwipeEnd = rememberUpdatedState(onDeleteSwipeEnd)
     val currentOnDeleteSwipeCancel = rememberUpdatedState(onDeleteSwipeCancel)
@@ -314,6 +318,10 @@ fun KeycapView(
                                     }
                                 } else if (initialKey.type == KeyType.SPACE) {
                                     // Handled via spacebarDwellJob
+                                } else if (currentDirectClipboard.value && activeMoreKeys.firstOrNull().let { it == "ACTION_CUT" || it == "ACTION_COPY" || it == "ACTION_PASTE" }) {
+                                    // Long press on X / C / V runs cut / copy / paste immediately (no popup)
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    currentOnClipboardAction.value(activeMoreKeys.first())
                                 } else if (activeMoreKeys.isNotEmpty() && coords != null && coords.isAttached) {
                                     isMoreKeysActive = true
                                     currentOnShowMoreKeys.value(initialKey.copy(moreKeys = activeMoreKeys), coords)
