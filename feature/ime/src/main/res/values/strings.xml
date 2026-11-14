@@ -1,0 +1,4 @@
+<resources>
+    <string name="ime_service_name">Only Keyboard Service</string>
+    <string name="ime_name">Only Keyboard</string>
+</resources>
