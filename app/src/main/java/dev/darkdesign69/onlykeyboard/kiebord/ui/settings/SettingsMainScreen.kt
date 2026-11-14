@@ -50,11 +50,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.darkdesign69.onlykeyboard.kiebord.R
-import dev.darkdesign69.onlykeyboard.data.prefs.Only KeyboardPreferences
+import dev.darkdesign69.onlykeyboard.data.prefs.KiebordPreferences
 
 @Composable
 fun SettingsMainScreen(
-    preferences: Only KeyboardPreferences,
+    preferences: KiebordPreferences,
     isImeEnabled: Boolean,
     isImeSelected: Boolean,
     onOpenSettings: () -> Unit,

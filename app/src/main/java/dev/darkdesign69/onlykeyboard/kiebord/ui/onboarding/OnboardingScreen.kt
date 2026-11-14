@@ -65,8 +65,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import dev.darkdesign69.onlykeyboard.kiebord.R
 import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.LocalSettingsColors
-import dev.darkdesign69.onlykeyboard.data.prefs.Only KeyboardPreferences
-import dev.darkdesign69.onlykeyboard.data.prefs.Only KeyboardPreferencesRepository
+import dev.darkdesign69.onlykeyboard.data.prefs.KiebordPreferences
+import dev.darkdesign69.onlykeyboard.data.prefs.KiebordPreferencesRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -80,8 +80,8 @@ enum class OnboardingStep {
 
 @Composable
 fun OnboardingScreen(
-    preferences: Only KeyboardPreferences,
-    preferencesRepo: Only KeyboardPreferencesRepository,
+    preferences: KiebordPreferences,
+    preferencesRepo: KiebordPreferencesRepository,
     isImeEnabled: Boolean,
     isImeSelected: Boolean,
     onOpenSettings: () -> Unit,
