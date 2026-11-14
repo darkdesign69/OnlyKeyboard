@@ -1,6 +1,10 @@
 package dev.darkdesign69.onlykeyboard.feature.ime.ui.clipboard
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -512,14 +516,36 @@ private fun ClipboardCard(
                 .align(Alignment.CenterStart),
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = entry.text,
-                color = colorScheme.keyForeground,
-                fontSize = 13.sp,
-                lineHeight = 17.sp,
-                maxLines = 5,
-                overflow = TextOverflow.Ellipsis
-            )
+            val clipBitmap = remember(entry.imagePath) {
+                entry.imagePath?.let { path ->
+                    try {
+                        val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = 4 }
+                        android.graphics.BitmapFactory.decodeFile(path, opts)?.asImageBitmap()
+                    } catch (_: Throwable) {
+                        null
+                    }
+                }
+            }
+            if (clipBitmap != null) {
+                Image(
+                    bitmap = clipBitmap,
+                    contentDescription = "Copied image",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 110.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+            } else {
+                Text(
+                    text = entry.text,
+                    color = colorScheme.keyForeground,
+                    fontSize = 13.sp,
+                    lineHeight = 17.sp,
+                    maxLines = 5,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
 
         if (entry.isOtp) {

@@ -179,6 +179,13 @@ fun SettingsUnifiedTopBar(
         is SettingsScreen.BackupRestore -> "Backup & Restore"
         is SettingsScreen.About -> "About Only Keyboard"
         is SettingsScreen.Onboarding -> "Setup Wizard"
+        is SettingsScreen.TypingPreferences -> "Preferences"
+        is SettingsScreen.AppearanceLayouts -> "Appearance & Layouts"
+        is SettingsScreen.TextCorrection -> "Text correction"
+        is SettingsScreen.AdvancedSettings -> "Advanced"
+        is SettingsScreen.GifQuality -> "Gif Quality"
+        is SettingsScreen.ReleaseNotes -> "Release notes"
+        is SettingsScreen.AppLanguage -> "App Language"
     }
 
     val subtitle: String? = when (screen) {
@@ -197,6 +204,13 @@ fun SettingsUnifiedTopBar(
         is SettingsScreen.BackupRestore -> "Import, export & data migration"
         is SettingsScreen.About -> null
         is SettingsScreen.Onboarding -> "Welcome to Only Keyboard"
+        is SettingsScreen.TypingPreferences -> "Typing, clipboard & key options"
+        is SettingsScreen.AppearanceLayouts -> "Number row, size, one-handed & split"
+        is SettingsScreen.TextCorrection -> "Suggestions & auto-correction"
+        is SettingsScreen.AdvancedSettings -> "Delays, cursor & feedback tuning"
+        is SettingsScreen.GifQuality -> null
+        is SettingsScreen.ReleaseNotes -> null
+        is SettingsScreen.AppLanguage -> "Change between Bangla and English"
     }
 
     val isMain = screen == SettingsScreen.Main
@@ -255,7 +269,7 @@ fun SettingsUnifiedTopBar(
                     )
                 } else {
                     Text(
-                        text = t,
+                        text = tr(t),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = colors.textPrimary,

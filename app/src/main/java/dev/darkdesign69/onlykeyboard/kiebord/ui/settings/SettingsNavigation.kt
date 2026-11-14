@@ -19,4 +19,11 @@ sealed class SettingsScreen {
     data object BackupRestore : SettingsScreen()
     data object About : SettingsScreen()
     data object Onboarding : SettingsScreen()
+    data object TypingPreferences : SettingsScreen()
+    data object AppearanceLayouts : SettingsScreen()
+    data object TextCorrection : SettingsScreen()
+    data object AdvancedSettings : SettingsScreen()
+    data object GifQuality : SettingsScreen()
+    data object ReleaseNotes : SettingsScreen()
+    data object AppLanguage : SettingsScreen()
 }

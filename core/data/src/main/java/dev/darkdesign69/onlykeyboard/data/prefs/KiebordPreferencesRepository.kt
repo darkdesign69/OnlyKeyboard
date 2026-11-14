@@ -99,6 +99,26 @@ class KiebordPreferencesRepository private constructor(private val context: Cont
         val AUTO_DELETE_RECENT_CLIPS_DURATION_HOURS = intPreferencesKey("pref_auto_delete_recent_clips_duration_hours")
         val SETUP_COMPLETED = booleanPreferencesKey("pref_setup_completed")
 
+
+        val LARGE_NUMBER_ROW = booleanPreferencesKey("pref_large_number_row")
+        val KEYBOARD_RESIZING_ENABLED = booleanPreferencesKey("pref_keyboard_resizing_enabled")
+        val ONE_HANDED_WIDTH_PORTRAIT = intPreferencesKey("pref_one_handed_width_portrait")
+        val ONE_HANDED_WIDTH_LANDSCAPE = intPreferencesKey("pref_one_handed_width_landscape")
+        val SPLIT_KEYBOARD_ENABLED = booleanPreferencesKey("pref_split_keyboard_enabled")
+        val SPLIT_KEYBOARD_FOLDABLE = booleanPreferencesKey("pref_split_keyboard_foldable")
+        val FORCED_ENTER_BUTTON = booleanPreferencesKey("pref_forced_enter_button")
+        val BLOCK_OFFENSIVE_WORDS = booleanPreferencesKey("pref_block_offensive_words")
+        val AUTO_CORRECTION = booleanPreferencesKey("pref_auto_correction")
+        val CLIPBOARD_RECENT_ITEMS = booleanPreferencesKey("pref_clipboard_recent_items")
+        val CLIPBOARD_SHOW_IMAGES = booleanPreferencesKey("pref_clipboard_show_images")
+        val KEY_POPUP_DISMISS_DELAY_MS = intPreferencesKey("pref_key_popup_dismiss_delay_ms")
+        val VIBRATION_DURATION_MS = intPreferencesKey("pref_vibration_duration_ms")
+        val SPACE_CURSOR_LONG_PRESS_DELAY_MS = intPreferencesKey("pref_space_cursor_long_press_delay_ms")
+        val SPACE_CURSOR_SPEED = intPreferencesKey("pref_space_cursor_speed")
+        val PHYSICAL_EMOJI_KEY = booleanPreferencesKey("pref_physical_emoji_key")
+        val APP_LANGUAGE = stringPreferencesKey("pref_app_language")
+        val GIF_QUALITY = stringPreferencesKey("pref_gif_quality")
+
         val IS_FLOATING_MODE = booleanPreferencesKey("pref_is_floating_mode")
         val FLOATING_WIDTH_PORTRAIT = floatPreferencesKey("pref_floating_width_portrait")
         val FLOATING_WIDTH_LANDSCAPE = floatPreferencesKey("pref_floating_width_landscape")
@@ -241,6 +261,24 @@ class KiebordPreferencesRepository private constructor(private val context: Cont
                     }
                     overrides
                 },
+                largeNumberRow = prefs[PreferencesKeys.LARGE_NUMBER_ROW] ?: false,
+                keyboardResizingEnabled = prefs[PreferencesKeys.KEYBOARD_RESIZING_ENABLED] ?: true,
+                oneHandedWidthPortraitPercent = prefs[PreferencesKeys.ONE_HANDED_WIDTH_PORTRAIT] ?: 80,
+                oneHandedWidthLandscapePercent = prefs[PreferencesKeys.ONE_HANDED_WIDTH_LANDSCAPE] ?: 40,
+                splitKeyboardEnabled = prefs[PreferencesKeys.SPLIT_KEYBOARD_ENABLED] ?: true,
+                splitKeyboardFoldable = prefs[PreferencesKeys.SPLIT_KEYBOARD_FOLDABLE] ?: false,
+                forcedEnterButton = prefs[PreferencesKeys.FORCED_ENTER_BUTTON] ?: true,
+                blockOffensiveWords = prefs[PreferencesKeys.BLOCK_OFFENSIVE_WORDS] ?: true,
+                autoCorrection = prefs[PreferencesKeys.AUTO_CORRECTION] ?: false,
+                clipboardRecentItems = prefs[PreferencesKeys.CLIPBOARD_RECENT_ITEMS] ?: true,
+                clipboardShowImages = prefs[PreferencesKeys.CLIPBOARD_SHOW_IMAGES] ?: false,
+                keyPopupDismissDelayMs = prefs[PreferencesKeys.KEY_POPUP_DISMISS_DELAY_MS] ?: 0,
+                vibrationDurationMs = prefs[PreferencesKeys.VIBRATION_DURATION_MS] ?: 0,
+                spaceCursorLongPressDelayMs = prefs[PreferencesKeys.SPACE_CURSOR_LONG_PRESS_DELAY_MS] ?: 400,
+                spaceCursorSpeed = prefs[PreferencesKeys.SPACE_CURSOR_SPEED] ?: 100,
+                physicalEmojiKey = prefs[PreferencesKeys.PHYSICAL_EMOJI_KEY] ?: true,
+                appLanguage = prefs[PreferencesKeys.APP_LANGUAGE] ?: KiebordPreferences.APP_LANGUAGE_ENGLISH,
+                gifQuality = prefs[PreferencesKeys.GIF_QUALITY] ?: KiebordPreferences.GIF_QUALITY_MEDIUM,
                 setupCompleted = (prefs[PreferencesKeys.SETUP_COMPLETED] ?: false).also { isCompleted ->
                     if (isCompleted && !fastCache.getBoolean("setup_completed", false)) {
                         fastCache.edit().putBoolean("setup_completed", true).apply()
@@ -614,6 +652,79 @@ class KiebordPreferencesRepository private constructor(private val context: Cont
     suspend fun setLayoutExtraRowEnabled(layoutId: String, rowId: String, enabled: Boolean) {
         val key = booleanPreferencesKey("pref_extra_row_${layoutId}_${rowId}")
         context.kiebordDataStore.edit { it[key] = enabled }
+    }
+
+    // Extra keyboard option mutators
+    suspend fun updateLargeNumberRow(enabled: Boolean) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.LARGE_NUMBER_ROW] = enabled }
+    }
+
+    suspend fun updateKeyboardResizingEnabled(enabled: Boolean) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.KEYBOARD_RESIZING_ENABLED] = enabled }
+    }
+
+    suspend fun updateOneHandedWidthPortraitPercent(percent: Int) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.ONE_HANDED_WIDTH_PORTRAIT] = percent.coerceIn(30, 95) }
+    }
+
+    suspend fun updateOneHandedWidthLandscapePercent(percent: Int) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.ONE_HANDED_WIDTH_LANDSCAPE] = percent.coerceIn(30, 95) }
+    }
+
+    suspend fun updateSplitKeyboardEnabled(enabled: Boolean) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.SPLIT_KEYBOARD_ENABLED] = enabled }
+    }
+
+    suspend fun updateSplitKeyboardFoldable(enabled: Boolean) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.SPLIT_KEYBOARD_FOLDABLE] = enabled }
+    }
+
+    suspend fun updateForcedEnterButton(enabled: Boolean) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.FORCED_ENTER_BUTTON] = enabled }
+    }
+
+    suspend fun updateBlockOffensiveWords(enabled: Boolean) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.BLOCK_OFFENSIVE_WORDS] = enabled }
+    }
+
+    suspend fun updateAutoCorrection(enabled: Boolean) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.AUTO_CORRECTION] = enabled }
+    }
+
+    suspend fun updateClipboardRecentItems(enabled: Boolean) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.CLIPBOARD_RECENT_ITEMS] = enabled }
+    }
+
+    suspend fun updateClipboardShowImages(enabled: Boolean) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.CLIPBOARD_SHOW_IMAGES] = enabled }
+    }
+
+    suspend fun updateKeyPopupDismissDelayMs(delayMs: Int) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.KEY_POPUP_DISMISS_DELAY_MS] = delayMs.coerceIn(0, 1000) }
+    }
+
+    suspend fun updateVibrationDurationMs(durationMs: Int) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.VIBRATION_DURATION_MS] = durationMs.coerceIn(0, 100) }
+    }
+
+    suspend fun updateSpaceCursorLongPressDelayMs(delayMs: Int) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.SPACE_CURSOR_LONG_PRESS_DELAY_MS] = delayMs.coerceIn(150, 1500) }
+    }
+
+    suspend fun updateSpaceCursorSpeed(speed: Int) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.SPACE_CURSOR_SPEED] = speed.coerceIn(50, 300) }
+    }
+
+    suspend fun updatePhysicalEmojiKey(enabled: Boolean) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.PHYSICAL_EMOJI_KEY] = enabled }
+    }
+
+    suspend fun updateAppLanguage(language: String) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.APP_LANGUAGE] = language }
+    }
+
+    suspend fun updateGifQuality(quality: String) {
+        context.kiebordDataStore.edit { it[PreferencesKeys.GIF_QUALITY] = quality }
     }
 
     // Reset

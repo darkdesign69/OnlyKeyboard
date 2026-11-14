@@ -22,7 +22,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ContentPaste
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.NewReleases
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Mic
@@ -202,28 +205,28 @@ fun SettingsMainScreen(
 
         SettingsGroup {
             SettingsNavigationItem(
-                title = "Appearance & Themes",
+                title = tr("Appearance & Themes"),
                 icon = Icons.Outlined.Palette,
                 position = GroupPosition.TOP,
                 onClick = { onNavigate(SettingsScreen.AppearanceThemes) }
             )
 
             SettingsNavigationItem(
-                title = "Keyboard Layouts",
+                title = tr("Keyboard Layouts"),
                 icon = Icons.Outlined.Keyboard,
                 position = GroupPosition.MIDDLE,
                 onClick = { onNavigate(SettingsScreen.KeyboardLayouts) }
             )
 
             SettingsNavigationItem(
-                title = "Language Extensions",
+                title = tr("Language Extensions"),
                 icon = Icons.Outlined.Language,
                 position = GroupPosition.MIDDLE,
                 onClick = { onNavigate(SettingsScreen.LanguageExtensions) }
             )
 
             SettingsNavigationItem(
-                title = "Preferences",
+                title = tr("Preferences"),
                 icon = Icons.Outlined.Tune,
                 position = GroupPosition.BOTTOM,
                 onClick = { onNavigate(SettingsScreen.Preferences) }
@@ -234,21 +237,21 @@ fun SettingsMainScreen(
 
         SettingsGroup {
             SettingsNavigationItem(
-                title = "Corrections & Suggestions",
+                title = tr("Corrections & Suggestions"),
                 icon = Icons.Outlined.Spellcheck,
                 position = GroupPosition.TOP,
                 onClick = { onNavigate(SettingsScreen.CorrectionsSuggestions) }
             )
 
             SettingsNavigationItem(
-                title = "Smart Gestures",
+                title = tr("Smart Gestures"),
                 icon = Icons.Outlined.Gesture,
                 position = GroupPosition.MIDDLE,
                 onClick = { onNavigate(SettingsScreen.SmartGestures) }
             )
 
             SettingsNavigationItem(
-                title = "Voice Typing",
+                title = tr("Voice Typing"),
                 icon = Icons.Outlined.Mic,
                 position = GroupPosition.BOTTOM,
                 onClick = { onNavigate(SettingsScreen.VoiceTyping) }
@@ -259,21 +262,21 @@ fun SettingsMainScreen(
 
         SettingsGroup {
             SettingsNavigationItem(
-                title = "Clipboard",
+                title = tr("Clipboard"),
                 icon = Icons.Outlined.ContentPaste,
                 position = GroupPosition.TOP,
                 onClick = { onNavigate(SettingsScreen.Clipboard) }
             )
 
             SettingsNavigationItem(
-                title = "Personal Dictionary",
+                title = tr("Personal Dictionary"),
                 icon = Icons.AutoMirrored.Outlined.MenuBook,
                 position = GroupPosition.MIDDLE,
                 onClick = { onNavigate(SettingsScreen.PersonalDictionary) }
             )
 
             SettingsNavigationItem(
-                title = "Backup & Restore",
+                title = tr("Backup & Restore"),
                 icon = Icons.Outlined.SettingsBackupRestore,
                 position = GroupPosition.BOTTOM,
                 onClick = { onNavigate(SettingsScreen.BackupRestore) }
@@ -282,9 +285,65 @@ fun SettingsMainScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        SettingsCategoryHeader(title = tr("Quick Settings"))
         SettingsGroup {
             SettingsNavigationItem(
-                title = "About Only Keyboard",
+                title = tr("Preferences"),
+                icon = Icons.Outlined.Tune,
+                position = GroupPosition.TOP,
+                onClick = { onNavigate(SettingsScreen.TypingPreferences) }
+            )
+            SettingsNavigationItem(
+                title = tr("Appearance & Layouts"),
+                icon = Icons.Outlined.Keyboard,
+                position = GroupPosition.MIDDLE,
+                onClick = { onNavigate(SettingsScreen.AppearanceLayouts) }
+            )
+            SettingsNavigationItem(
+                title = tr("Text correction"),
+                icon = Icons.Outlined.Spellcheck,
+                position = GroupPosition.MIDDLE,
+                onClick = { onNavigate(SettingsScreen.TextCorrection) }
+            )
+            SettingsNavigationItem(
+                title = tr("More Languages"),
+                subtitle = tr("Install Arabic, Chakma, Syloti language"),
+                icon = Icons.Outlined.Language,
+                position = GroupPosition.MIDDLE,
+                onClick = { onNavigate(SettingsScreen.LanguageExtensions) }
+            )
+            SettingsNavigationItem(
+                title = tr("Advanced"),
+                icon = Icons.Outlined.Settings,
+                position = GroupPosition.MIDDLE,
+                onClick = { onNavigate(SettingsScreen.AdvancedSettings) }
+            )
+            SettingsNavigationItem(
+                title = tr("Gif Quality"),
+                icon = Icons.Outlined.Image,
+                position = GroupPosition.MIDDLE,
+                onClick = { onNavigate(SettingsScreen.GifQuality) }
+            )
+            SettingsNavigationItem(
+                title = tr("Release notes"),
+                icon = Icons.Outlined.NewReleases,
+                position = GroupPosition.MIDDLE,
+                onClick = { onNavigate(SettingsScreen.ReleaseNotes) }
+            )
+            SettingsNavigationItem(
+                title = tr("App Language"),
+                subtitle = tr("Change between Bangla and English"),
+                icon = Icons.Outlined.Translate,
+                position = GroupPosition.BOTTOM,
+                onClick = { onNavigate(SettingsScreen.AppLanguage) }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        SettingsGroup {
+            SettingsNavigationItem(
+                title = tr("About Only Keyboard"),
                 iconResId = R.drawable.ic_launcher,
                 position = GroupPosition.ALONE,
                 onClick = { onNavigate(SettingsScreen.About) }

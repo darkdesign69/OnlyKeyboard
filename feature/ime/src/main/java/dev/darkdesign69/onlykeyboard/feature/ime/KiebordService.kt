@@ -267,6 +267,7 @@ class KiebordService : InputMethodService() {
     private var selectionAnchor: Int? = null
     private var selectionCursor: Int? = null
     private var inputSessionId by mutableIntStateOf(0)
+    private var emojiOpenRequestState by mutableIntStateOf(0)
     private var lastDeletedBatchState by mutableStateOf<String?>(null)
     private var isBornoEasyKarMode by mutableStateOf(false)
     private var bornoEasyTypedCluster by mutableStateOf("")
@@ -380,6 +381,10 @@ class KiebordService : InputMethodService() {
         serviceScope.launch {
             preferencesRepo.preferencesFlow.collect { prefs ->
                 preferencesState = prefs
+                if (::clipboardManager.isInitialized) {
+                    clipboardManager.recordRecentItems = prefs.clipboardRecentItems
+                    clipboardManager.recordImages = prefs.clipboardShowImages
+                }
                 (transliterationManager as? GenericTransliterationManager)?.isAutoCorrectEnabled = prefs.phoneticAutoCorrect
                 val isDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
                 colorScheme = dev.darkdesign69.onlykeyboard.theme.ThemeRepository.getInstance(this@KiebordService).getColorScheme(prefs.theme, this@KiebordService, isDark = isDark)
@@ -593,6 +598,20 @@ class KiebordService : InputMethodService() {
                     showGestureTrail = preferencesState.showGestureTrail,
                     longPressDelayMs = preferencesState.longPressDelayMs.toLong(),
                     cursorTrackpadEnabled = preferencesState.cursorTrackpadEnabled,
+                    largeNumberRow = preferencesState.largeNumberRow,
+                    keyboardResizingEnabled = preferencesState.keyboardResizingEnabled,
+                    oneHandedWidthPortraitPercent = preferencesState.oneHandedWidthPortraitPercent,
+                    oneHandedWidthLandscapePercent = preferencesState.oneHandedWidthLandscapePercent,
+                    splitKeyboardEnabled = preferencesState.splitKeyboardEnabled,
+                    splitKeyboardFoldable = preferencesState.splitKeyboardFoldable,
+                    forcedEnterButton = preferencesState.forcedEnterButton,
+                    isMultiLineField = ((currentEditorInfoState?.inputType ?: 0) and InputType.TYPE_TEXT_FLAG_MULTI_LINE) != 0,
+                    keyPopupDismissDelayMs = preferencesState.keyPopupDismissDelayMs,
+                    spaceCursorLongPressDelayMs = preferencesState.spaceCursorLongPressDelayMs,
+                    spaceCursorSpeed = preferencesState.spaceCursorSpeed,
+                    emojiOpenRequest = emojiOpenRequestState,
+                    clipboardRecentEnabled = preferencesState.clipboardRecentItems,
+                    onPasteClipImage = { imagePath -> pasteClipboardImage(imagePath) },
                     heightScalePortrait = preferencesState.keyboardHeightScale,
                     heightScaleLandscape = preferencesState.keyboardHeightScaleLandscape,
                     chinPaddingPortraitDp = preferencesState.chinPaddingPortraitDp,
@@ -946,6 +965,16 @@ class KiebordService : InputMethodService() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (preferencesState.physicalEmojiKey &&
+            (keyCode == KeyEvent.KEYCODE_ALT_LEFT || keyCode == KeyEvent.KEYCODE_ALT_RIGHT) &&
+            (event?.repeatCount ?: 0) == 0
+        ) {
+            if (!isInputViewShown) {
+                try { requestShowSelf(0) } catch (_: Exception) {}
+            }
+            emojiOpenRequestState++
+            return true
+        }
         if (isInputViewShown && preferencesState.smartVolumeCursor && !preferencesState.volumeKeyGesturesEnabled &&
             (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP)
         ) {
@@ -994,6 +1023,11 @@ class KiebordService : InputMethodService() {
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (preferencesState.physicalEmojiKey &&
+            (keyCode == KeyEvent.KEYCODE_ALT_LEFT || keyCode == KeyEvent.KEYCODE_ALT_RIGHT)
+        ) {
+            return true
+        }
         if (isInputViewShown && preferencesState.smartVolumeCursor && !preferencesState.volumeKeyGesturesEnabled &&
             (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP)
         ) {
@@ -1145,7 +1179,7 @@ class KiebordService : InputMethodService() {
         }
         if (!preferencesState.vibrateOnKeypress) return
         try {
-            if (preferencesState.vibrationType == KiebordPreferences.VIBRATION_TYPE_HAPTIC) {
+            if (preferencesState.vibrationType == KiebordPreferences.VIBRATION_TYPE_HAPTIC && preferencesState.vibrationDurationMs <= 0) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     clickVibrationEffect?.let { vibratorService?.vibrate(it) }
                 } else {
@@ -1157,15 +1191,18 @@ class KiebordService : InputMethodService() {
             } else {
                 // Vibration mode: duration and amplitude scaled by vibrationStrength
                 val strength = preferencesState.vibrationStrength
-                val durationMs = (10L + (strength * 30L / 100L)).coerceIn(5L, 60L)
+                val customDurationMs = preferencesState.vibrationDurationMs
+                val durationMs = if (customDurationMs > 0) customDurationMs.toLong() else (10L + (strength * 30L / 100L)).coerceIn(5L, 60L)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    val effect = if (cachedOneShotStrength == strength && cachedOneShotEffect != null) {
+                    val effect = if (customDurationMs <= 0 && cachedOneShotStrength == strength && cachedOneShotEffect != null) {
                         cachedOneShotEffect!!
                     } else {
                         val amplitude = (strength * 255 / 100).coerceIn(1, 255)
                         VibrationEffect.createOneShot(durationMs, amplitude).also {
-                            cachedOneShotStrength = strength
-                            cachedOneShotEffect = it
+                            if (customDurationMs <= 0) {
+                                cachedOneShotStrength = strength
+                                cachedOneShotEffect = it
+                            }
                         }
                     }
                     vibratorService?.vibrate(effect)
@@ -1272,6 +1309,13 @@ class KiebordService : InputMethodService() {
                             composingBuffer.append(text)
                             ic.setComposingText(composingBuffer.toString(), 1)
                         } else {
+                            val typedWord = composingBuffer.toString().trim()
+                            val correctedWord = if (typedWord.isNotEmpty()) tryAutoCorrect(typedWord) else null
+                            if (correctedWord != null) {
+                                try { ic.setComposingText(correctedWord, 1) } catch (_: Exception) {}
+                                composingBuffer.setLength(0)
+                                composingBuffer.append(correctedWord)
+                            }
                             val word = composingBuffer.toString().trim()
                             if (canLearnFromCurrentEditor() && preferencesState.learnedWordsEnabled && word.length >= UserDictionaryRepository.MIN_LEARN_LENGTH) {
                                 val prevWord = getPrecedingWord(excludeComposing = true)
@@ -2858,7 +2902,15 @@ class KiebordService : InputMethodService() {
         }
     }
 
-    private fun filterAndMarkCandidates(candidates: List<SuggestionCandidate>): List<SuggestionCandidate> {
+    private fun filterAndMarkCandidates(rawCandidates: List<SuggestionCandidate>): List<SuggestionCandidate> {
+        val candidates = if (preferencesState.blockOffensiveWords) {
+            rawCandidates.filter { cand ->
+                !OffensiveWordFilter.isOffensive(cand.text) ||
+                    (cand.rawInput != null && cand.text.equals(cand.rawInput, ignoreCase = true))
+            }
+        } else {
+            rawCandidates
+        }
         val filtered = filterCandidatesForLayout(candidates)
         if (filtered.isEmpty()) return emptyList()
         val marked = markLearnedCandidates(filtered)
@@ -3209,6 +3261,56 @@ class KiebordService : InputMethodService() {
                 SuggestionCandidate(text = word, isPrimary = idx == 0)
             })
         }
+    }
+
+    /** Pastes a copied image into the focused field using rich content (images / GIF / screenshots). */
+    private fun pasteClipboardImage(imagePath: String) {
+        try {
+            val ic = currentInputConnection ?: return
+            val editorInfo = currentInputEditorInfo ?: return
+            val file = java.io.File(imagePath)
+            if (!file.exists()) return
+            val uri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+            val mime = when (file.extension.lowercase()) {
+                "png" -> "image/png"
+                "gif" -> "image/gif"
+                "webp" -> "image/webp"
+                else -> "image/jpeg"
+            }
+            val info = androidx.core.view.inputmethod.InputContentInfoCompat(
+                uri,
+                android.content.ClipDescription("image", arrayOf(mime)),
+                null
+            )
+            val flags = if (Build.VERSION.SDK_INT >= 25) androidx.core.view.inputmethod.InputConnectionCompat.INPUT_CONTENT_GRANT_READ_URI_PERMISSION else 0
+            val ok = androidx.core.view.inputmethod.InputConnectionCompat.commitContent(ic, editorInfo, info, flags, null)
+            if (!ok) {
+                android.widget.Toast.makeText(this, "This field does not accept images", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        } catch (_: Exception) {}
+    }
+
+    /**
+     * "Auto-correction" setting: when the user finishes a word (space / punctuation) that is not in the
+     * dictionary and exactly one edit turns it into a dictionary word, the word is replaced.
+     */
+    private fun tryAutoCorrect(word: String): String? {
+        if (!preferencesState.autoCorrection || !NativeEngine.isAvailable()) return null
+        val editorInfo = currentEditorInfoState ?: currentInputEditorInfo
+        if (InputModeResolver.isPasswordField(editorInfo) || InputModeResolver.isDirectCommit(editorInfo) || isUrlOrCodeField()) return null
+        if (word.isEmpty() || word[0].isUpperCase()) return null
+        val config = resolveSuggestionConfig(activeLayout)
+        if (config.dictLang != "en") return null
+        val isKnownLearned = userDictionaryRepo.getCompletions(word, 6) { it.equals(word, ignoreCase = true) }
+            .any { it.equals(word, ignoreCase = true) }
+        if (isKnownLearned) return null
+        val isKnownPersonal = personalDictionaryRepo.getPrefixMatches(word, config.dictLang, 6)
+            .any { it.word.equals(word, ignoreCase = true) }
+        if (isKnownPersonal) return null
+        val corrected = AutoCorrector.correct(word.lowercase()) { candidate ->
+            NativeEngine.isDictionaryWord(candidate, config.dictLang)
+        } ?: return null
+        return AutoCorrector.applyCase(corrected, word)
     }
 
     private fun insertEmojiSuggestions(

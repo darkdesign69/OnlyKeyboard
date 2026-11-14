@@ -54,6 +54,14 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.AboutScreen
+import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.AdvancedSettingsScreen
+import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.AppLanguageScreen
+import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.AppearanceLayoutsScreen
+import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.GifQualityScreen
+import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.LocalAppLanguage
+import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.ReleaseNotesScreen
+import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.TextCorrectionScreen
+import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.TypingPreferencesScreen
 import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.AppearanceThemesScreen
 import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.BackupRestoreScreen
 import dev.darkdesign69.onlykeyboard.kiebord.ui.settings.ClipboardSettingsScreen
@@ -127,6 +135,7 @@ class MainActivity : ComponentActivity() {
 
             CompositionLocalProvider(
                 LocalSettingsColors provides settingsColors,
+                LocalAppLanguage provides preferences.appLanguage,
                 LocalTextStyle provides TextStyle(fontFamily = KeyboardFontFamily)
             ) {
                 MaterialTheme(
@@ -764,6 +773,53 @@ fun KiebordSettingsApp(
                             pendingDictionaryUri = pendingDictionaryImportUri,
                             onClearPendingDictionaryUri = onClearPendingDictionaryImportUri,
                             onBack = navigateBack
+                        )
+                    }
+
+                    is SettingsScreen.TypingPreferences -> {
+                        TypingPreferencesScreen(
+                            preferences = preferences,
+                            update = { block -> scope.launch { preferencesRepo.block() } }
+                        )
+                    }
+
+                    is SettingsScreen.AppearanceLayouts -> {
+                        AppearanceLayoutsScreen(
+                            preferences = preferences,
+                            update = { block -> scope.launch { preferencesRepo.block() } }
+                        )
+                    }
+
+                    is SettingsScreen.TextCorrection -> {
+                        TextCorrectionScreen(
+                            preferences = preferences,
+                            update = { block -> scope.launch { preferencesRepo.block() } }
+                        )
+                    }
+
+                    is SettingsScreen.AdvancedSettings -> {
+                        AdvancedSettingsScreen(
+                            preferences = preferences,
+                            update = { block -> scope.launch { preferencesRepo.block() } },
+                            onOpenVoiceEngine = { navigateTo(SettingsScreen.VoiceTyping) }
+                        )
+                    }
+
+                    is SettingsScreen.GifQuality -> {
+                        GifQualityScreen(
+                            preferences = preferences,
+                            update = { block -> scope.launch { preferencesRepo.block() } }
+                        )
+                    }
+
+                    is SettingsScreen.ReleaseNotes -> {
+                        ReleaseNotesScreen()
+                    }
+
+                    is SettingsScreen.AppLanguage -> {
+                        AppLanguageScreen(
+                            preferences = preferences,
+                            update = { block -> scope.launch { preferencesRepo.block() } }
                         )
                     }
 

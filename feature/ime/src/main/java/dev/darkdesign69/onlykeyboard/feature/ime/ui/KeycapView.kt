@@ -68,6 +68,7 @@ import dev.darkdesign69.onlykeyboard.theme.KeyboardColorScheme
 import dev.darkdesign69.onlykeyboard.theme.KiebordTheme
 import dev.darkdesign69.onlykeyboard.theme.effectiveMoreKeysBackground
 import dev.darkdesign69.onlykeyboard.data.prefs.KiebordPreferences
+import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -132,7 +133,10 @@ fun KeycapView(
     onGestureEnd: () -> Unit = {},
     isInteractive: Boolean = true,
     gestureTypingEnabled: Boolean = true,
-    longPressDelayMs: Long = 300L
+    longPressDelayMs: Long = 300L,
+    popupDismissDelayMs: Long = 0L,
+    spaceCursorLongPressDelayMs: Long = 400L,
+    spaceCursorSpeed: Int = 100
 ) {
     val colorScheme = KiebordTheme.colorScheme
     val density = LocalDensity.current
@@ -217,10 +221,24 @@ fun KeycapView(
     val currentOnGestureEnd = rememberUpdatedState(onGestureEnd)
     val currentGestureTypingEnabled = rememberUpdatedState(gestureTypingEnabled)
     val currentLongPressDelay = rememberUpdatedState(longPressDelayMs)
+    val currentSpaceCursorDelay = rememberUpdatedState(spaceCursorLongPressDelayMs)
+    val currentSpaceCursorSpeed = rememberUpdatedState(spaceCursorSpeed)
     val currentShiftState = rememberUpdatedState(shiftState)
 
     val isSpecialNoPopupKey = key.type == KeyType.SPACE || key.commitText == "\u200C" || displaySymbolLabel.contains("ZWNJ") || displaySymbolLabel.contains("\n")
-    val showCircularPopup = showKeyPopups && isPressed && key.type == KeyType.CHARACTER && !isSlidingSymbolMode && !isSlidingShiftMode && !isMoreKeysActive && !isSpecialNoPopupKey
+    var popupLingering by remember { mutableStateOf(false) }
+    var wasPressedForPopup by remember { mutableStateOf(false) }
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            wasPressedForPopup = true
+            popupLingering = false
+        } else if (wasPressedForPopup && popupDismissDelayMs > 0L) {
+            popupLingering = true
+            delay(popupDismissDelayMs)
+            popupLingering = false
+        }
+    }
+    val showCircularPopup = showKeyPopups && (isPressed || popupLingering) && key.type == KeyType.CHARACTER && !isSlidingSymbolMode && !isSlidingShiftMode && !isMoreKeysActive && !isSpecialNoPopupKey
 
     // Key styling: cleanly toggles between keyborder mode (keycap boxes) and flat mode (no boxes except accent pills)
     Box(
@@ -256,13 +274,13 @@ fun KeycapView(
                             val fastDeleteCancelThresholdPx = with(density) { 20.dp.toPx() }
                             var gestureEnded = false
                             var lastTrackpadX = 0f
-                            val trackpadStepPx = with(density) { 14.dp.toPx() }
+                            val trackpadStepPx = with(density) { 14.dp.toPx() * 100f / currentSpaceCursorSpeed.value.coerceIn(50, 300) }
 
                             val isSlidingInitiator = initialKey.slidingInput || initialKey.type == KeyType.SHIFT || isSymbolsToggleKey
 
                             val spacebarDwellJob = if (initialKey.type == KeyType.SPACE) {
                                 launch {
-                                    delay(400L)
+                                    delay(currentSpaceCursorDelay.value.coerceIn(100L, 2000L))
                                     isSpacebarDwellReady = true
                                     currentOnSpacebarDwellReady.value()
                                 }

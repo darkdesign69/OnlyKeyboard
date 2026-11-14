@@ -223,6 +223,20 @@ fun KeyboardRootView(
     showGestureTrail: Boolean = true,
     longPressDelayMs: Long = 300L,
     cursorTrackpadEnabled: Boolean = true,
+    largeNumberRow: Boolean = false,
+    keyboardResizingEnabled: Boolean = true,
+    oneHandedWidthPortraitPercent: Int = 80,
+    oneHandedWidthLandscapePercent: Int = 40,
+    splitKeyboardEnabled: Boolean = false,
+    splitKeyboardFoldable: Boolean = false,
+    forcedEnterButton: Boolean = true,
+    isMultiLineField: Boolean = false,
+    keyPopupDismissDelayMs: Int = 0,
+    spaceCursorLongPressDelayMs: Int = 400,
+    spaceCursorSpeed: Int = 100,
+    emojiOpenRequest: Int = 0,
+    clipboardRecentEnabled: Boolean = true,
+    onPasteClipImage: (String) -> Unit = {},
     inputSessionId: Int = 0,
     actionKeyVisual: ActionKeyVisual = ActionKeyVisual.DefaultEnter,
     vibrationEnabled: Boolean = true,
@@ -429,7 +443,14 @@ fun KeyboardRootView(
     var isToolbarOptionsVisible by remember { mutableStateOf(false) }
     var isFloating by remember(isFloatingMode) { mutableStateOf(isFloatingMode) }
     var oneHandedSide by remember(defaultOneHandedMode, isFloating) { mutableStateOf(if (isFloating) "OFF" else defaultOneHandedMode) } // "OFF", "RIGHT", "LEFT"
-    var oneHandedSideWidth by remember { mutableFloatStateOf(64f) }
+    val oneHandedConfig = LocalConfiguration.current
+    val oneHandedScreenWidthDp = oneHandedConfig.screenWidthDp.toFloat()
+    val oneHandedIsLandscape = oneHandedConfig.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val oneHandedWidthPercent = if (oneHandedIsLandscape) oneHandedWidthLandscapePercent else oneHandedWidthPortraitPercent
+    val oneHandedMaxSideDp = maxOf(130f, oneHandedScreenWidthDp * 0.7f)
+    var oneHandedSideWidth by remember(oneHandedWidthPercent, oneHandedScreenWidthDp) {
+        mutableFloatStateOf((oneHandedScreenWidthDp * (100 - oneHandedWidthPercent) / 100f).coerceIn(48f, oneHandedMaxSideDp))
+    }
     var isEmojiOpen by remember { mutableStateOf(false) }
     var isEmojiSearchOpen by remember { mutableStateOf(false) }
     var emojiSearchQuery by remember { mutableStateOf("") }
@@ -499,6 +520,7 @@ fun KeyboardRootView(
     var showEmojiRow by remember(defaultShowEmojiRow) { mutableStateOf(defaultShowEmojiRow) }
     var showSecondaryKeys by remember(defaultShowSecondaryKeys) { mutableStateOf(defaultShowSecondaryKeys) }
     var showKeyPopups by remember(defaultShowKeyPopups) { mutableStateOf(defaultShowKeyPopups) }
+    val numberRowBaseDp = if (largeNumberRow) 62f else 50f
     var traditionalMode by remember(defaultTraditionalMode) { mutableStateOf(defaultTraditionalMode) }
 
     val configuration = LocalConfiguration.current
@@ -561,6 +583,8 @@ fun KeyboardRootView(
     val activeBaseRowHeight = if (isLandscape) baseLandscapeRowHeight else basePortraitRowHeight
     val activeHeightScale = if (isFloating) {
         currentFloatingHeightScale
+    } else if (!keyboardResizingEnabled) {
+        1f
     } else if (isLandscape) {
         heightScaleLandscape
     } else {
@@ -588,12 +612,13 @@ fun KeyboardRootView(
     val targetKeyboardHeight = remember(
         isPrimaryBornoEasy,
         showNumberRow,
+        numberRowBaseDp,
         standardRowHeight,
         bornoEasyRowHeight,
         bottomRowHeight,
         scaleFactor
     ) {
-        val topNumberHeight = if (showNumberRow) (50 * scaleFactor).dp else 0.dp
+        val topNumberHeight = if (showNumberRow) (numberRowBaseDp * scaleFactor).dp else 0.dp
         if (isPrimaryBornoEasy) {
             topNumberHeight + (bornoEasyRowHeight * 5) + bottomRowHeight
         } else {
@@ -728,6 +753,8 @@ fun KeyboardRootView(
     val isShiftActive = effectiveShiftState != ShiftState.UNSHIFTED
     val isSymbolLayout = displayLayout.isSymbolsLayout()
     val isMoreSymbolsLayout = displayLayout.isMoreSymbolsLayout()
+    val isSplitActive = !isFloating && oneHandedSide == "OFF" && !isNumberLayout && !isMoreSymbolsLayout &&
+        ((splitKeyboardEnabled && isLandscape) || (splitKeyboardFoldable && configuration.screenWidthDp >= 600))
     val baseAlphaLayout = if (isSymbolLayout) (if (isSlidingSymbolMode) layout else primaryAlphaLayout) else displayLayout
 
     val keyboardRows: List<KeyRow> = remember(displayLayout, baseAlphaLayout, showNumberRow, extraRowOverrides, isShiftActive, isBornoEasyKarMode, bornoEasyTypedCluster, showGlobeKey) {
@@ -879,7 +906,7 @@ fun KeyboardRootView(
                 val isMoreSymbolsTopRow = isMoreSymbolsLayout && showNumberRow && index == 0
                 total += when {
                     isBottom -> bottomRowHeight
-                    isTopNumber || isMoreSymbolsTopRow -> (50 * scaleFactor).dp
+                    isTopNumber || isMoreSymbolsTopRow -> (numberRowBaseDp * scaleFactor).dp
                     isDisplayBornoEasy -> bornoEasyRowHeight
                     else -> standardRowHeight
                 }
@@ -899,7 +926,7 @@ fun KeyboardRootView(
         val eRowHeight = if (showEmojiRow) (if (isLandscape) (37 * s).coerceIn(30f, 44f).dp else (43 * s).dp) else 0.dp
         val bRow = (if (isLandscape) baseLandscapeBottomRowHeight else baseStandardPortraitRowHeight) * s
         val content = if (isNumberLayout) {
-            val topNum = if (showNumberRow) (50 * s).dp else 0.dp
+            val topNum = if (showNumberRow) (numberRowBaseDp * s).dp else 0.dp
             val stdRow = (if (isLandscape) baseLandscapeBottomRowHeight else baseStandardPortraitRowHeight) * s
             val bEasyRow = (if (isLandscape) baseLandscapeBornoEasyRowHeight else baseBornoEasyPortraitRowHeight) * s
             if (isPrimaryBornoEasy) {
@@ -917,7 +944,7 @@ fun KeyboardRootView(
                 val isMoreSymbolsTopRow = isMoreSymbolsLayout && showNumberRow && index == 0
                 total += when {
                     isBottom -> bRow
-                    isTopNumber || isMoreSymbolsTopRow -> (50 * s).dp
+                    isTopNumber || isMoreSymbolsTopRow -> (numberRowBaseDp * s).dp
                     isDisplayBornoEasy -> bEasyRow
                     else -> stdRow
                 }
@@ -966,7 +993,7 @@ fun KeyboardRootView(
                 }
             }
             ToolbarAction.RESIZER -> {
-                if (isFloating) {
+                if (isFloating || !keyboardResizingEnabled) {
                     performHaptic(HapticFeedbackType.LongPress)
                 } else {
                     if (!isResizerOpen) {
@@ -1087,6 +1114,12 @@ fun KeyboardRootView(
         }
     }
 
+    LaunchedEffect(emojiOpenRequest) {
+        if (emojiOpenRequest > 0 && !isEmojiOpen) {
+            handleToolbarAction(ToolbarAction.EMOJI)
+        }
+    }
+
     val isActionActive: (ToolbarAction) -> Boolean = { action ->
         when (action) {
             ToolbarAction.NUMBER_ROW_TOGGLE -> showNumberRow
@@ -1176,9 +1209,9 @@ fun KeyboardRootView(
             )
         } else if (isClipboardOpen) {
             ClipboardPanelView(
-                clips = clipboardManager?.clips ?: emptyList(),
+                clips = (clipboardManager?.clips ?: emptyList()).let { all -> if (clipboardRecentEnabled) all else all.filter { it.isPinned } },
                 onClipClick = { clip ->
-                    onPasteClip(clip.text)
+                    if (clip.imagePath != null) onPasteClipImage(clip.imagePath) else onPasteClip(clip.text)
                     clipboardManager?.clearQuickPaste()
                     undoActionPillState = UndoRedoPillState.CanUndo(text = clip.text, isPaste = true)
                 },
@@ -1953,7 +1986,7 @@ fun KeyboardRootView(
                         val isMoreSymbolsTopRow = isMoreSymbolsLayout && showNumberRow && rowIndex == 0
                         val currentRowHeight = when {
                             isBottomRow -> bottomRowHeight
-                            isTopNumberRow || isMoreSymbolsTopRow -> (50 * scaleFactor).dp
+                            isTopNumberRow || isMoreSymbolsTopRow -> (numberRowBaseDp * scaleFactor).dp
                             isNumberLayout -> numberUpperRowHeight
                             isDisplayBornoEasy -> bornoEasyRowHeight
                             else -> standardRowHeight
@@ -1980,6 +2013,13 @@ fun KeyboardRootView(
                         }
 
                         row.keys.forEachIndexed { keyIndex, key ->
+                            if (isSplitActive && !isBottomRow && row.keys.size >= 6 && keyIndex == (row.keys.size + 1) / 2) {
+                                Spacer(
+                                    modifier = Modifier
+                                        .weight(1.2f)
+                                        .fillMaxHeight()
+                                )
+                            }
                             val effectiveKey = if (key.type == KeyType.SPACE && key.label.isBlank()) {
                                 val spaceLabel = if (displayLayout.isSymbolsLayout()) {
                                     "Space"
@@ -1988,6 +2028,8 @@ fun KeyboardRootView(
                                 }
                                 key.copy(label = spaceLabel)
                             } else if (key.type == KeyType.SWITCH_LANGUAGE && showEmojiKey) {
+                                key.copy(type = KeyType.EMOJI, icon = "emoji")
+                            } else if (key.type == KeyType.ACTION && !forcedEnterButton && !showEmojiKey && !actionKeyVisual.isAction && !isMultiLineField && !displayLayout.isSymbolsLayout()) {
                                 key.copy(type = KeyType.EMOJI, icon = "emoji")
                             } else if (isEmailField && isBottomRow && key.label == "," && !displayLayout.isSymbolsLayout()) {
                                 key.copy(label = "@", commitText = "@", shiftedCommitText = "@", shiftedLabel = "@")
@@ -2017,6 +2059,9 @@ fun KeyboardRootView(
                                 scaleFactor = scaleFactor,
                                 gestureTypingEnabled = isEffectiveGestureTypingEnabled,
                                 longPressDelayMs = longPressDelayMs,
+                                popupDismissDelayMs = keyPopupDismissDelayMs.toLong(),
+                                spaceCursorLongPressDelayMs = spaceCursorLongPressDelayMs.toLong(),
+                                spaceCursorSpeed = spaceCursorSpeed,
                                 modifier = Modifier
                                     .weight(effectiveKey.widthWeight)
                                     .fillMaxHeight(),
@@ -2911,9 +2956,9 @@ fun KeyboardRootView(
                 onAdjustPaddingDelta = { deltaPx ->
                     val deltaDp = deltaPx / density.density
                     if (oneHandedSide == "LEFT") {
-                        oneHandedSideWidth = (oneHandedSideWidth - deltaDp).coerceIn(48f, 130f)
+                        oneHandedSideWidth = (oneHandedSideWidth - deltaDp).coerceIn(48f, oneHandedMaxSideDp)
                     } else {
-                        oneHandedSideWidth = (oneHandedSideWidth + deltaDp).coerceIn(48f, 130f)
+                        oneHandedSideWidth = (oneHandedSideWidth + deltaDp).coerceIn(48f, oneHandedMaxSideDp)
                     }
                 },
                 onCyclePaddingPreset = {

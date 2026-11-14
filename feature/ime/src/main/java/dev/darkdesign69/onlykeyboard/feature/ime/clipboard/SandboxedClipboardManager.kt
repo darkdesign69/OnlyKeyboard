@@ -17,7 +17,8 @@ data class ClipboardEntry(
     val text: String,
     val timestamp: Long = System.currentTimeMillis(),
     val isPinned: Boolean = false,
-    val isOtp: Boolean = false
+    val isOtp: Boolean = false,
+    val imagePath: String? = null
 )
 
 class SandboxedClipboardManager internal constructor(
@@ -41,6 +42,16 @@ class SandboxedClipboardManager internal constructor(
     private val storageFile by lazy { File(filesDir, "kiebord_clipboard_v1.json") }
     private val ioScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO)
     private val fileWriteMutex = Mutex()
+
+    /** When false (setting "Clipboard Recent Items" off) copied text is not recorded automatically. */
+    @Volatile
+    var recordRecentItems: Boolean = true
+
+    /** When true (setting "Show copied images on Clipboard"), copied images / screenshots are stored too. */
+    @Volatile
+    var recordImages: Boolean = false
+
+    private var lastSyncedImageUri: String? = null
 
     private var lastSyncedText: String? = null
     private var lastSyncedTimestamp: Long = 0L
@@ -103,6 +114,7 @@ class SandboxedClipboardManager internal constructor(
     }
 
     fun syncFromSystemClipboard(callingContext: Context? = null, forceNotify: Boolean = false) {
+        if (!recordRecentItems) return
         try {
             purgeExpiredOtps()
             purgeExpiredRecentClipsFromPrefs()
@@ -110,6 +122,8 @@ class SandboxedClipboardManager internal constructor(
                 ?: (appContext?.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager)
                 ?: systemClipboard
                 ?: return
+
+            if (recordImages && trySyncImage(cm, forceNotify)) return
 
             val foundText = extractPrimaryClipText(cm, callingContext) ?: return
             val trimmed = foundText.trim()
@@ -134,6 +148,74 @@ class SandboxedClipboardManager internal constructor(
                 addClip(trimmed, notifyQuickPaste = true)
             }
         } catch (_: Exception) {}
+    }
+
+    private fun trySyncImage(cm: ClipboardManager, forceNotify: Boolean): Boolean {
+        val ctx = appContext ?: return false
+        if (!cm.hasPrimaryClip()) return false
+        val desc = cm.primaryClipDescription ?: return false
+        if (!desc.hasMimeType("image/*")) return false
+        val clip = cm.primaryClip ?: return false
+        var uri: android.net.Uri? = null
+        for (i in 0 until clip.itemCount) {
+            val candidate = clip.getItemAt(i)?.uri
+            if (candidate != null) {
+                uri = candidate
+                break
+            }
+        }
+        if (uri == null) return false
+        val key = uri.toString()
+        if (!forceNotify && key == lastSyncedImageUri) return true
+        return try {
+            var mime = "image/png"
+            for (i in 0 until desc.mimeTypeCount) {
+                val m = desc.getMimeType(i)
+                if (m.startsWith("image/")) {
+                    mime = m
+                    break
+                }
+            }
+            val ext = when {
+                mime.contains("png") -> "png"
+                mime.contains("gif") -> "gif"
+                mime.contains("webp") -> "webp"
+                else -> "jpg"
+            }
+            val dir = File(filesDir, "clip_images")
+            if (!dir.exists()) dir.mkdirs()
+            val file = File(dir, java.util.UUID.randomUUID().toString() + "." + ext)
+            val stream = ctx.contentResolver.openInputStream(uri) ?: return false
+            stream.use { input ->
+                file.outputStream().use { out -> input.copyTo(out) }
+            }
+            if (file.length() <= 0L || file.length() > 8L * 1024L * 1024L) {
+                file.delete()
+                return false
+            }
+            lastSyncedImageUri = key
+            addImageClip(file.absolutePath)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun addImageClip(path: String) {
+        val entry = ClipboardEntry(text = "[Image]", imagePath = path)
+        clips.add(0, entry)
+        val unpinned = clips.filter { !it.isPinned }
+        if (unpinned.size > 50) {
+            val lastUnpinned = unpinned.last()
+            deleteImageFile(lastUnpinned)
+            clips.remove(lastUnpinned)
+        }
+        saveClipsToDisk()
+    }
+
+    private fun deleteImageFile(entry: ClipboardEntry) {
+        val path = entry.imagePath ?: return
+        try { File(path).delete() } catch (_: Exception) {}
     }
 
     fun addClip(text: String, notifyQuickPaste: Boolean = true): ClipboardEntry? {
@@ -188,6 +270,7 @@ class SandboxedClipboardManager internal constructor(
     }
 
     fun deleteClip(entry: ClipboardEntry) {
+        clips.filter { it.id == entry.id }.forEach { deleteImageFile(it) }
         clips.removeAll { it.id == entry.id }
         if (quickPasteClip?.id == entry.id) {
             quickPasteClip = null
@@ -199,6 +282,7 @@ class SandboxedClipboardManager internal constructor(
     fun deleteClips(ids: Collection<String>) {
         if (ids.isEmpty()) return
         val idSet = ids.toSet()
+        clips.filter { it.id in idSet }.forEach { deleteImageFile(it) }
         val deletedTexts = clips.filter { it.id in idSet }.map { it.text.trim() }.toSet()
         clips.removeAll { it.id in idSet }
         if (quickPasteClip?.id in idSet) {
@@ -209,6 +293,7 @@ class SandboxedClipboardManager internal constructor(
     }
 
     fun clearAllUnpinned() {
+        clips.filter { !it.isPinned }.forEach { deleteImageFile(it) }
         val unpinnedTexts = clips.filter { !it.isPinned }.map { it.text.trim() }.toSet()
         clips.removeAll { !it.isPinned }
         if (quickPasteClip?.isPinned == false) {
@@ -386,7 +471,11 @@ class SandboxedClipboardManager internal constructor(
                 sb.append("    \"text\": \"").append(BornoClipboardBackupHelper.escapeJson(entry.text)).append("\",\n")
                 sb.append("    \"timestamp\": ").append(entry.timestamp).append(",\n")
                 sb.append("    \"isPinned\": ").append(entry.isPinned).append(",\n")
-                sb.append("    \"isOtp\": ").append(entry.isOtp).append("\n")
+                sb.append("    \"isOtp\": ").append(entry.isOtp)
+                if (entry.imagePath != null) {
+                    sb.append(",\n    \"imagePath\": \"").append(BornoClipboardBackupHelper.escapeJson(entry.imagePath)).append("\"")
+                }
+                sb.append("\n")
                 sb.append("  }")
                 if (i < snapshot.size - 1) sb.append(",")
                 sb.append("\n")
@@ -442,14 +531,16 @@ class SandboxedClipboardManager internal constructor(
                 }
                 val isPinned = map["isPinned"] as? Boolean ?: (map["isPinned"] == 1 || map["isPinned"] == "1")
                 val isOtp = map["isOtp"] as? Boolean ?: (map["isOtp"] == 1 || map["isOtp"] == "1")
-                if (text.isNotBlank()) {
+                val imagePath = (map["imagePath"] as? String)?.takeIf { it.isNotBlank() && File(it).exists() }
+                if (text.isNotBlank() && (imagePath != null || map["imagePath"] == null)) {
                     loaded.add(
                         ClipboardEntry(
                             id = id,
                             text = text,
                             timestamp = timestamp,
                             isPinned = isPinned,
-                            isOtp = isOtp
+                            isOtp = isOtp,
+                            imagePath = imagePath
                         )
                     )
                 }

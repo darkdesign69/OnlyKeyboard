@@ -93,6 +93,26 @@ data class KiebordPreferences(
     // Layout-specific dynamic extra row overrides ("${layoutId}_${rowId}" -> Boolean)
     val extraRowOverrides: Map<String, Boolean> = emptyMap(),
 
+    // Extra keyboard options
+    val largeNumberRow: Boolean = false,
+    val keyboardResizingEnabled: Boolean = true,
+    val oneHandedWidthPortraitPercent: Int = 80,
+    val oneHandedWidthLandscapePercent: Int = 40,
+    val splitKeyboardEnabled: Boolean = true,
+    val splitKeyboardFoldable: Boolean = false,
+    val forcedEnterButton: Boolean = true,
+    val blockOffensiveWords: Boolean = true,
+    val autoCorrection: Boolean = false,
+    val clipboardRecentItems: Boolean = true,
+    val clipboardShowImages: Boolean = false,
+    val keyPopupDismissDelayMs: Int = 0, // 0 = default (instant)
+    val vibrationDurationMs: Int = 0, // 0 = system default
+    val spaceCursorLongPressDelayMs: Int = 400,
+    val spaceCursorSpeed: Int = 100, // percent, 100 = normal
+    val physicalEmojiKey: Boolean = true,
+    val appLanguage: String = APP_LANGUAGE_ENGLISH,
+    val gifQuality: String = GIF_QUALITY_MEDIUM,
+
     // Onboarding / Setup status
     val setupCompleted: Boolean = false
 ) {
@@ -115,6 +135,13 @@ data class KiebordPreferences(
     }
 
     companion object {
+        const val APP_LANGUAGE_ENGLISH = "en"
+        const val APP_LANGUAGE_BANGLA = "bn"
+
+        const val GIF_QUALITY_LOW = "low"
+        const val GIF_QUALITY_MEDIUM = "medium"
+        const val GIF_QUALITY_HIGH = "high"
+
         const val VOICE_PROVIDER_GOOGLE = "google"
 
         const val THEME_DEFAULT_DARK = "default_dark"
