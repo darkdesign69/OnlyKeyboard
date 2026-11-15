@@ -42,14 +42,14 @@ jobs:
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.2.11394342" >> $GITHUB_ENV
 
       - run: chmod +x ./gradlew
-      - run: ./gradlew assembleDebug --no-daemon
+      - run: ./gradlew assembleRelease --no-daemon
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m"
 
       - name: Collect APK
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/debug/*.apk "out/OnlyKeyboard-${{ inputs.tag }}.apk"
+          cp app/build/outputs/apk/release/*.apk "out/OnlyKeyboard-${{ inputs.tag }}.apk"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
