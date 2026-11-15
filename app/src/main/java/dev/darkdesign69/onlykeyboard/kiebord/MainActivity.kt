@@ -104,6 +104,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var preferencesRepo: KiebordPreferencesRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        CrashReporter.install(applicationContext)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         lifecycleScope.launch(Dispatchers.IO) {
@@ -120,6 +121,7 @@ class MainActivity : ComponentActivity() {
 
             val isDark = isSystemInDarkTheme()
             val settingsColors = if (isDark) DarkSettingsColors else LightSettingsColors
+            CrashReportDialog()
 
             val view = LocalView.current
             if (!view.isInEditMode) {

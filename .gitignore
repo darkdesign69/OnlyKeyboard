@@ -15,6 +15,7 @@ native/borno-engine/target/
 *.apk
 *.aab
 *.keystore
+!app/onlykeyboard-debug.keystore
 *.jks
 *.log
 .kotlin/

@@ -13,13 +13,22 @@ android {
         applicationId = "dev.darkdesign69.onlykeyboard"
         minSdk = 24
         targetSdk = 36
-        versionCode = 22
+        // Always increases on every GitHub Actions run so a new build can update the installed one
+        versionCode = 22 + (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0)
         versionName = "0.2.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
+        // One fixed key for every debug build, so a new APK installs over the old one
+        // without "App not installed as package conflicts with an existing package".
+        create("onlykeyboardDebug") {
+            storeFile = file("onlykeyboard-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         create("release") {
             val keystorePath = System.getenv("KEYSTORE_FILE")
             if (!keystorePath.isNullOrBlank() && file(keystorePath).exists()) {
@@ -42,6 +51,7 @@ android {
             signingConfig = signingConfigs.getByName("release").takeIf { it.storeFile != null }
         }
         debug {
+            signingConfig = signingConfigs.getByName("onlykeyboardDebug")
         }
     }
 
