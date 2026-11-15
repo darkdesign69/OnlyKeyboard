@@ -1,0 +1,1 @@
+KeyboardRootView: moved new logic into small helper functions to avoid VerifyError.
