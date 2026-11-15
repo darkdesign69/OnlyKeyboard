@@ -10,7 +10,6 @@ data class KiebordPreferences(
     val keyboardHeightScaleLandscape: Float = 1.0f,
     val chinPaddingPortraitDp: Float = 22.0f,
     val chinPaddingLandscapeDp: Float = 8.0f,
-    val translateTargetLanguage: String = "bn",
     val horizontalMarginPortraitDp: Float = 0.0f,
     val horizontalMarginLandscapeDp: Float = 0.0f,
     val showNumberRow: Boolean = false,

@@ -790,9 +790,9 @@ fun KeycapView(
                 } else if (displaySymbolLabel.length > 2) {
                     if (isBangla) 15f else 17f
                 } else if (displaySymbolLabel.length > 1) {
-                    if (isBangla) 18.5f else 21f
+                    if (isBangla) 21f else 24.5f
                 } else {
-                    if (isBangla) 22.5f else 26f
+                    if (isBangla) 25.5f else 31f
                 }
                 val rawSize = if (isMultiline) 11.5f else if (key.type == KeyType.SYMBOLS) (if (isBangla) 15f else 17f) else baseCharSize
                 val textSize = (rawSize * fontScaleFactor).coerceAtLeast(8.5f).sp

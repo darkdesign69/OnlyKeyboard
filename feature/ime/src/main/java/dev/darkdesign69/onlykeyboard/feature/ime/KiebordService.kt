@@ -611,7 +611,6 @@ class KiebordService : InputMethodService() {
                     spaceCursorLongPressDelayMs = preferencesState.spaceCursorLongPressDelayMs,
                     spaceCursorSpeed = preferencesState.spaceCursorSpeed,
                     emojiOpenRequest = emojiOpenRequestState,
-                    onTranslateRequest = { translateCurrentText() },
                     clipboardRecentEnabled = preferencesState.clipboardRecentItems,
                     onPasteClipImage = { imagePath -> pasteClipboardImage(imagePath) },
                     cutCopyPasteLongPress = preferencesState.cutCopyPasteLongPress,
@@ -979,7 +978,19 @@ class KiebordService : InputMethodService() {
             emojiOpenRequestState++
             return true
         }
-        if (isInputViewShown && preferencesState.volumeKeyGesturesEnabled && !isMediaPlayingAndSmartVolume()) {
+        if (isInputViewShown && preferencesState.smartVolumeCursor && !preferencesState.volumeKeyGesturesEnabled &&
+            (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+        ) {
+            val audio = getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager
+            if (audio != null && !audio.isMusicActive) {
+                handleTextAction(
+                    if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) TextAction.MOVE_LEFT else TextAction.MOVE_RIGHT,
+                    isSelecting = false
+                )
+                return true
+            }
+        }
+        if (isInputViewShown && preferencesState.volumeKeyGesturesEnabled) {
             when (keyCode) {
                 KeyEvent.KEYCODE_VOLUME_DOWN -> {
                     when (preferencesState.volumeKeyGestureAction) {
@@ -1020,7 +1031,13 @@ class KiebordService : InputMethodService() {
         ) {
             return true
         }
-        if (isInputViewShown && preferencesState.volumeKeyGesturesEnabled && !isMediaPlayingAndSmartVolume()) {
+        if (isInputViewShown && preferencesState.smartVolumeCursor && !preferencesState.volumeKeyGesturesEnabled &&
+            (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+        ) {
+            val audio = getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager
+            if (audio != null && !audio.isMusicActive) return true
+        }
+        if (isInputViewShown && preferencesState.volumeKeyGesturesEnabled) {
             if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
                 return true
             }
@@ -3246,49 +3263,6 @@ class KiebordService : InputMethodService() {
             activeSuggestions = filterAndMarkCandidates(formattedMerged.mapIndexed { idx, word ->
                 SuggestionCandidate(text = word, isPrimary = idx == 0)
             })
-        }
-    }
-
-    /** "Smart volume key cursor control": while audio plays, volume keys keep their normal job. */
-    private fun isMediaPlayingAndSmartVolume(): Boolean {
-        if (!preferencesState.smartVolumeCursor) return false
-        return try {
-            (getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager)?.isMusicActive == true
-        } catch (_: Exception) {
-            false
-        }
-    }
-
-    /**
-     * (T) button on the toolbar: translates the selected text, or the whole text of the field when
-     * nothing is selected, into the language chosen in Settings -> Appearance & Layouts.
-     */
-    private fun translateCurrentText() {
-        val ic = currentInputConnection ?: return
-        finishComposing()
-        val selected = ic.getSelectedText(0)?.toString().orEmpty()
-        val before = if (selected.isEmpty()) ic.getTextBeforeCursor(4000, 0)?.toString().orEmpty() else ""
-        val after = if (selected.isEmpty()) ic.getTextAfterCursor(4000, 0)?.toString().orEmpty() else ""
-        val source = if (selected.isNotEmpty()) selected else before + after
-        if (source.isBlank()) {
-            android.widget.Toast.makeText(this, "Type or select some text to translate", android.widget.Toast.LENGTH_SHORT).show()
-            return
-        }
-        android.widget.Toast.makeText(this, "Translating...", android.widget.Toast.LENGTH_SHORT).show()
-        dev.darkdesign69.onlykeyboard.feature.ime.translate.TextTranslator.translate(
-            text = source,
-            targetTag = preferencesState.translateTargetLanguage,
-            fallbackSourceTag = "en"
-        ) { result, error ->
-            val conn = currentInputConnection
-            if (result != null && conn != null) {
-                conn.beginBatchEdit()
-                if (selected.isEmpty()) conn.deleteSurroundingText(before.length, after.length)
-                conn.commitText(result, 1)
-                conn.endBatchEdit()
-            } else if (error != null) {
-                android.widget.Toast.makeText(this, error, android.widget.Toast.LENGTH_LONG).show()
-            }
         }
     }
 

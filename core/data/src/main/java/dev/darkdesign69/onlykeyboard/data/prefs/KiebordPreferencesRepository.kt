@@ -100,7 +100,6 @@ class KiebordPreferencesRepository private constructor(private val context: Cont
         val SETUP_COMPLETED = booleanPreferencesKey("pref_setup_completed")
 
 
-        val TRANSLATE_TARGET_LANGUAGE = stringPreferencesKey("pref_translate_target_language")
         val LARGE_NUMBER_ROW = booleanPreferencesKey("pref_large_number_row")
         val CUT_COPY_PASTE_LONG_PRESS = booleanPreferencesKey("pref_cut_copy_paste_long_press")
         val KEYBOARD_RESIZING_ENABLED = booleanPreferencesKey("pref_keyboard_resizing_enabled")
@@ -263,7 +262,6 @@ class KiebordPreferencesRepository private constructor(private val context: Cont
                     }
                     overrides
                 },
-                translateTargetLanguage = prefs[PreferencesKeys.TRANSLATE_TARGET_LANGUAGE] ?: "bn",
                 largeNumberRow = prefs[PreferencesKeys.LARGE_NUMBER_ROW] ?: false,
                 cutCopyPasteLongPress = prefs[PreferencesKeys.CUT_COPY_PASTE_LONG_PRESS] ?: true,
                 keyboardResizingEnabled = prefs[PreferencesKeys.KEYBOARD_RESIZING_ENABLED] ?: true,
@@ -659,17 +657,6 @@ class KiebordPreferencesRepository private constructor(private val context: Cont
     }
 
     // Extra keyboard option mutators
-    suspend fun updateTranslateTargetLanguage(tag: String) {
-        context.kiebordDataStore.edit { it[PreferencesKeys.TRANSLATE_TARGET_LANGUAGE] = tag }
-    }
-
-    suspend fun updateChinPadding(isLandscape: Boolean, dp: Float) {
-        context.kiebordDataStore.edit { prefs ->
-            if (isLandscape) prefs[PreferencesKeys.CHIN_PADDING_LANDSCAPE] = dp
-            else prefs[PreferencesKeys.CHIN_PADDING_PORTRAIT] = dp
-        }
-    }
-
     suspend fun updateLargeNumberRow(enabled: Boolean) {
         context.kiebordDataStore.edit { it[PreferencesKeys.LARGE_NUMBER_ROW] = enabled }
     }

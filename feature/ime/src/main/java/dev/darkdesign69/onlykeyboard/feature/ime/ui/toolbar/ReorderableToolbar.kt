@@ -257,7 +257,7 @@ fun ReorderableToolbar(
                     val maxSlotWidth = (slotWidthDp - (4 * scaleFactor).dp).coerceAtLeast((20 * scaleFactor).coerceIn(16f, 28f).dp)
                     val desiredWidth = (if (isCustomizeMode) 56.dp else 48.dp) * scaleFactor
                     val tileWidth = minOf(maxSlotWidth, desiredWidth).coerceAtLeast(18.dp)
-                    val tileHeight = (34 * scaleFactor).coerceIn(24f, 40f).dp
+                    val tileHeight = (29 * scaleFactor).coerceIn(22f, 34f).dp
                     val tileShape = RoundedCornerShape((8 * scaleFactor).coerceIn(4f, 10f).dp)
 
                     // The Tool Tile
