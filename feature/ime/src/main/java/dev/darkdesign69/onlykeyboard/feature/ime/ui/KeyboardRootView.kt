@@ -2823,7 +2823,7 @@ fun KeyboardRootView(
         }
 
         // 5. Spacebar Layout Slider Floating Popup Overlay
-        if (isSpacebarSwiping && effectiveLayoutList.size > 1) {
+        if (SHOW_SPACEBAR_SLIDER_OVERLAY && isSpacebarSwiping && effectiveLayoutList.size > 1) {
             val spaceKeyCoords = run {
                 for (r in keyboardRows.indices) {
                     val row = keyboardRows[r]
@@ -3966,3 +3966,6 @@ private fun toggleToolsButton(
         else -> openTools()
     }
 }
+
+/** Ridmik-style: swiping the spacebar switches language directly, without the slider popup. */
+private const val SHOW_SPACEBAR_SLIDER_OVERLAY = false

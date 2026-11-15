@@ -195,16 +195,6 @@ fun AppearanceLayoutsScreen(preferences: KiebordPreferences, update: PrefsUpdate
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        SettingsGroup(modifier = Modifier.padding(horizontal = 16.dp)) {
-            val current = TRANSLATE_LANGUAGES.indexOfFirst { it.first == preferences.translateTargetLanguage }.coerceAtLeast(0)
-            SettingsNavigationItem(
-                title = tr("Translate to"),
-                subtitle = TRANSLATE_LANGUAGES[current].second + " - " + tr("tap the (T) button on the keyboard to translate your text; tap here to change language"),
-                position = GroupPosition.ALONE,
-                onClick = { update { updateTranslateTargetLanguage(TRANSLATE_LANGUAGES[(current + 1) % TRANSLATE_LANGUAGES.size].first) } }
-            )
-        }
 
         Spacer(modifier = Modifier.height(16.dp))
         SettingsGroup(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -379,8 +369,3 @@ fun ReleaseNotesScreen() {
 }
 
 
-private val TRANSLATE_LANGUAGES = listOf(
-    "bn" to "Bangla", "en" to "English", "hi" to "Hindi", "ur" to "Urdu", "ar" to "Arabic",
-    "es" to "Spanish", "fr" to "French", "de" to "German", "tr" to "Turkish", "id" to "Indonesian",
-    "ru" to "Russian", "zh" to "Chinese", "ja" to "Japanese", "ko" to "Korean", "pt" to "Portuguese", "it" to "Italian"
-)
