@@ -1,0 +1,1 @@
+Translate (T) button, bottom gap slider, smart volume fix

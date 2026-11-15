@@ -174,6 +174,40 @@ fun AppearanceLayoutsScreen(preferences: KiebordPreferences, update: PrefsUpdate
 
         Spacer(modifier = Modifier.height(16.dp))
         SettingsGroup(modifier = Modifier.padding(horizontal = 16.dp)) {
+            SettingsSliderItem(
+                title = tr("Bottom gap (Portrait)"),
+                subtitle = tr("Space between the keys and the bottom of the screen"),
+                value = preferences.chinPaddingPortraitDp.coerceIn(-30f, 60f),
+                valueRange = -30f..60f,
+                steps = 17,
+                valueLabel = "${preferences.chinPaddingPortraitDp.roundToInt()} dp",
+                position = GroupPosition.TOP,
+                onValueChange = { v -> update { updateChinPadding(false, (v / 5f).roundToInt() * 5f) } }
+            )
+            SettingsSliderItem(
+                title = tr("Bottom gap (Landscape)"),
+                value = preferences.chinPaddingLandscapeDp.coerceIn(-30f, 60f),
+                valueRange = -30f..60f,
+                steps = 17,
+                valueLabel = "${preferences.chinPaddingLandscapeDp.roundToInt()} dp",
+                position = GroupPosition.BOTTOM,
+                onValueChange = { v -> update { updateChinPadding(true, (v / 5f).roundToInt() * 5f) } }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        SettingsGroup(modifier = Modifier.padding(horizontal = 16.dp)) {
+            val current = TRANSLATE_LANGUAGES.indexOfFirst { it.first == preferences.translateTargetLanguage }.coerceAtLeast(0)
+            SettingsNavigationItem(
+                title = tr("Translate to"),
+                subtitle = TRANSLATE_LANGUAGES[current].second + " - " + tr("tap the (T) button on the keyboard to translate your text; tap here to change language"),
+                position = GroupPosition.ALONE,
+                onClick = { update { updateTranslateTargetLanguage(TRANSLATE_LANGUAGES[(current + 1) % TRANSLATE_LANGUAGES.size].first) } }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        SettingsGroup(modifier = Modifier.padding(horizontal = 16.dp)) {
             Toggle("Enable split keyboard", "Splits the keys in two halves in landscape", preferences.splitKeyboardEnabled, 0, 3) { v -> update { updateSplitKeyboardEnabled(v) } }
             Toggle("Enable split keyboard for foldable phone", "Splits the keys when the screen is wide (unfolded)", preferences.splitKeyboardFoldable, 1, 3) { v -> update { updateSplitKeyboardFoldable(v) } }
             Toggle("Forced enter button", "Do not show emoji on enter button", preferences.forcedEnterButton, 2, 3) { v -> update { updateForcedEnterButton(v) } }
@@ -343,3 +377,10 @@ fun ReleaseNotesScreen() {
         }
     }
 }
+
+
+private val TRANSLATE_LANGUAGES = listOf(
+    "bn" to "Bangla", "en" to "English", "hi" to "Hindi", "ur" to "Urdu", "ar" to "Arabic",
+    "es" to "Spanish", "fr" to "French", "de" to "German", "tr" to "Turkish", "id" to "Indonesian",
+    "ru" to "Russian", "zh" to "Chinese", "ja" to "Japanese", "ko" to "Korean", "pt" to "Portuguese", "it" to "Italian"
+)

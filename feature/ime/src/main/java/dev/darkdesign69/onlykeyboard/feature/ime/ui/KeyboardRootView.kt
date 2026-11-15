@@ -235,6 +235,7 @@ fun KeyboardRootView(
     spaceCursorLongPressDelayMs: Int = 400,
     spaceCursorSpeed: Int = 100,
     emojiOpenRequest: Int = 0,
+    onTranslateRequest: () -> Unit = {},
     clipboardRecentEnabled: Boolean = true,
     onPasteClipImage: (String) -> Unit = {},
     cutCopyPasteLongPress: Boolean = true,
@@ -1323,25 +1324,25 @@ fun KeyboardRootView(
                             .background(
                                 if (isToolsExpanded) Color(0x22FFFFFF) else Color.Transparent
                             )
-                            .clickable {
-                                when {
-                                    isSuggestionsExpanded -> {
-                                        performHaptic(HapticFeedbackType.TextHandleMove)
-                                        isSuggestionsExpanded = false
-                                    }
-                                    isToolsDrawerOpen || isToolbarOptionsVisible -> {
-                                        isToolsDrawerOpen = false
-                                        isToolbarOptionsVisible = false
-                                    }
-                                    else -> {
-                                        isToolsDrawerOpen = true
-                                        isToolbarOptionsVisible = true
-                                    }
+                            .tapOrLongClick(
+                                onTap = {
+                                    toggleToolsButton(
+                                        isSuggestionsExpanded,
+                                        isToolsDrawerOpen || isToolbarOptionsVisible,
+                                        { isSuggestionsExpanded = false },
+                                        { isToolsDrawerOpen = false; isToolbarOptionsVisible = false },
+                                        { isToolsDrawerOpen = true; isToolbarOptionsVisible = true },
+                                        { performHaptic(HapticFeedbackType.TextHandleMove) }
+                                    )
+                                },
+                                onLongPress = {
+                                    performHaptic(HapticFeedbackType.LongPress)
+                                    onTranslateRequest()
                                 }
-                            },
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (isToolsExpanded) {
+                        if (isSuggestionsExpanded) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                                 contentDescription = when {
@@ -1362,8 +1363,8 @@ fun KeyboardRootView(
                             )
                         } else {
                             Icon(
-                                painter = painterResource(R.drawable.ic_kiebord_top),
-                                contentDescription = "All Tools",
+                                painter = painterResource(R.drawable.ic_translate),
+                                contentDescription = "Toggle tools and suggestions (long press to translate)",
                                 tint = colorScheme.effectiveToolbarForeground,
                                 modifier = Modifier.size((26 * scaleFactor).coerceAtLeast(18f).dp)
                             )
@@ -3939,4 +3940,23 @@ private fun visibleClips(
 ): List<dev.darkdesign69.onlykeyboard.feature.ime.clipboard.ClipboardEntry> {
     val list = all ?: emptyList()
     return if (recentEnabled) list else list.filter { it.isPinned }
+}
+
+
+private fun toggleToolsButton(
+    suggestionsExpanded: Boolean,
+    drawerOrOptionsOpen: Boolean,
+    collapseSuggestions: () -> Unit,
+    closeTools: () -> Unit,
+    openTools: () -> Unit,
+    haptic: () -> Unit
+) {
+    when {
+        suggestionsExpanded -> {
+            haptic()
+            collapseSuggestions()
+        }
+        drawerOrOptionsOpen -> closeTools()
+        else -> openTools()
+    }
 }

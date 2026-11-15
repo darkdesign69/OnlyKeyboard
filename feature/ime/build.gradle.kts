@@ -114,6 +114,8 @@ dependencies {
     implementation(libs.androidx.compose.material.icons)
     implementation(libs.androidx.emoji2.emojipicker)
     implementation(libs.androidx.emoji2)
+    implementation("com.google.mlkit:translate:17.0.3")
+    implementation("com.google.mlkit:language-id:17.0.6")
 
     testImplementation(libs.junit)
 }
