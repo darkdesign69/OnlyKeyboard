@@ -445,7 +445,8 @@ fun KeyboardRootView(
     var isFloating by remember(isFloatingMode) { mutableStateOf(isFloatingMode) }
     var oneHandedSide by remember(defaultOneHandedMode, isFloating) { mutableStateOf(if (isFloating) "OFF" else defaultOneHandedMode) } // "OFF", "RIGHT", "LEFT"
     val oneHandedMaxSideDp = rememberOneHandedMaxDp()
-    var oneHandedSideWidth by remember { mutableFloatStateOf(initialOneHandedSideWidth(oneHandedWidthPortraitPercent, oneHandedWidthLandscapePercent)) }
+    val oneHandedInitialWidth = initialOneHandedSideWidth(oneHandedWidthPortraitPercent, oneHandedWidthLandscapePercent)
+    var oneHandedSideWidth by remember { mutableFloatStateOf(oneHandedInitialWidth) }
     var isEmojiOpen by remember { mutableStateOf(false) }
     var isEmojiSearchOpen by remember { mutableStateOf(false) }
     var emojiSearchQuery by remember { mutableStateOf("") }
