@@ -376,9 +376,9 @@ fun ReorderableToolbar(
                         val isCustomIcon = item.iconResId != null
                         val maxIconInTile = (tileWidth - 2.dp).value.coerceAtLeast(14f)
                         val iconSizeDp = if (isCustomIcon) {
-                            (26f * scaleFactor).coerceIn(16f, maxIconInTile)
+                            (20f * scaleFactor).coerceIn(14f, maxIconInTile)
                         } else {
-                            (23f * scaleFactor).coerceIn(14f, maxIconInTile)
+                            (18f * scaleFactor).coerceIn(13f, maxIconInTile)
                         }
                         val iconModifier = Modifier.size(iconSizeDp.dp)
                         val iconTint = when {

@@ -1331,13 +1331,19 @@ fun KeyboardRootView(
                                         isToolsDrawerOpen || isToolbarOptionsVisible,
                                         { isSuggestionsExpanded = false },
                                         { isToolsDrawerOpen = false; isToolbarOptionsVisible = false },
-                                        { isToolsDrawerOpen = true; isToolbarOptionsVisible = true },
+                                        { isToolbarOptionsVisible = true },
                                         { performHaptic(HapticFeedbackType.TextHandleMove) }
                                     )
                                 },
                                 onLongPress = {
                                     performHaptic(HapticFeedbackType.LongPress)
-                                    onTranslateRequest()
+                                    if (isToolsDrawerOpen) {
+                                        isToolsDrawerOpen = false
+                                        isToolbarOptionsVisible = false
+                                    } else {
+                                        isToolsDrawerOpen = true
+                                        isToolbarOptionsVisible = true
+                                    }
                                 }
                             ),
                         contentAlignment = Alignment.Center
@@ -1364,9 +1370,9 @@ fun KeyboardRootView(
                         } else {
                             Icon(
                                 painter = painterResource(R.drawable.ic_translate),
-                                contentDescription = "Toggle tools and suggestions (long press to translate)",
+                                contentDescription = "Toggle tools and suggestions (long press for all tools)",
                                 tint = colorScheme.effectiveToolbarForeground,
-                                modifier = Modifier.size((26 * scaleFactor).coerceAtLeast(18f).dp)
+                                modifier = Modifier.size((19 * scaleFactor).coerceAtLeast(15f).dp)
                             )
                         }
                     }
